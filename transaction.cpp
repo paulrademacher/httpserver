@@ -25,6 +25,7 @@ RequestSharedPtr Transaction::read_request() {
     std::istream stream(&buffer);
 
     // TODO: Deal with malformed request (e.g., not 3 parts).
+    // TODO: Deal with too-long uri or header line.
 
     stream >> method >> uri >> http_version;
     request->method = method;

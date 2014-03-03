@@ -1,0 +1,7 @@
+Class Socket
+
+response code strings in static map
+
+Class App instead of Server (multiple apps per server)
+
+max length on buffer read in http headers
