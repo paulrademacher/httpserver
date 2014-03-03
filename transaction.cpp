@@ -78,14 +78,26 @@ void Transaction::process_request(RequestSharedPtr &request) {
     send_response(response);
   } else {
     printf("NO MATCH: %s\n", request->uri.c_str());
+
+    response->set_status_code(404);
+    send_response(response);
   }
 }
 
 void Transaction::send_response(ResponseSharedPtr &response) {
   std::string output = response->get();
 
+  if (!output.length()) {
+    // Use default response HTML if nothing was set.
+    output = server_.response_code_.get_response_html(response->get_status_code());
+  }
+
+  std::cout << "ST: " << response->get_status_code() << std::endl;
+
+  std::string& status_string = server_.response_code_.get_status_string(response->get_status_code());
+
   boost::system::error_code ignored_error;
-  boost::asio::write(*socket_, boost::asio::buffer("HTTP/1.1 200 OK\r\n"), ignored_error);
+  boost::asio::write(*socket_, boost::asio::buffer("HTTP/1.1 " + status_string + "\r\n"), ignored_error);
   boost::asio::write(*socket_, boost::asio::buffer("Content-Type: text/html\r\n"), ignored_error);
   boost::asio::write(*socket_, boost::asio::buffer("Content-Length: " +
       std::to_string(output.size()) + "\r\n"), ignored_error);

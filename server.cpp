@@ -54,5 +54,5 @@ RouteSharedPtr Server::match_route(std::string &uri, std::string &method_string)
       return *it;
     }
   }
-  return NULL;
+  return nullptr;
 }

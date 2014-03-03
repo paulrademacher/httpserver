@@ -5,6 +5,7 @@
 #include <set>
 
 #include "common.hpp"
+#include "response_code.hpp"
 #include "route.hpp"
 #include "transaction.hpp"
 
@@ -17,6 +18,7 @@ public:
     MethodEnum method=METHOD_GET);
   RouteSharedPtr match_route(std::string &uri, std::string &method_string);
 
+  ResponseCode response_code_;
 private:
   std::string host_;
   int port_;

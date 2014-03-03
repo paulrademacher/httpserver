@@ -2,13 +2,20 @@
 #define __HTTP_RESPONSE_CODE_H__
 
 #include <map>
+#include <string>
 
 class ResponseCode {
 public:
-  static std::string& get_as_string(int code);
+  ResponseCode();
+
+  std::string& get_status_string(int code);
+  std::string& get_response_html(int code);
+
+  void set_response_html(int code, std::string& html);
 
 private:
-  static std::map<std::string, std::string> code_to_string_;
+  std::map<int, std::string> status_string_;
+  std::map<int, std::string> response_html_;
 };
 
 #endif // __HTTP_RESPONSE_CODE_H__

@@ -6,12 +6,19 @@
 
 class Response {
 public:
+  Response();
+
   void write(std::string &str);
   void write(std::string str);
 
   std::string get();
+
+  void set_status_code(int status_code);
+
+  int get_status_code();
 private:
   std::stringstream stream_;
+  int status_code_;
 };
 
 typedef std::shared_ptr<Response> ResponseSharedPtr;
