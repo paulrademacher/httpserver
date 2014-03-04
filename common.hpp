@@ -5,8 +5,6 @@
 
 using boost::asio::ip::tcp;
 
-typedef std::shared_ptr<tcp::socket> SocketSharedPtr;
-
 enum MethodEnum {
   METHOD_ANY = 0,
   METHOD_GET = 1,

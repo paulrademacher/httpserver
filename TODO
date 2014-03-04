@@ -1,4 +1,4 @@
-Class Socket
+Socket->write in transaction
 
 response code strings in static map
 

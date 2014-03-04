@@ -21,8 +21,8 @@ void Server::run() {
 
   try {
     while (true) {
-      SocketSharedPtr socket(new tcp::socket(*io_service_));
-      acceptor_->accept(*socket);
+      SocketSharedPtr socket(new Socket(*io_service_));
+      acceptor_->accept(socket->get_raw_socket());
 
       printf("---------------- Connection: --------------------\n");
 

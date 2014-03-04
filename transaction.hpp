@@ -6,6 +6,7 @@
 
 #include "common.hpp"
 #include "request.hpp"
+#include "socket.hpp"
 
 using boost::asio::ip::tcp;
 

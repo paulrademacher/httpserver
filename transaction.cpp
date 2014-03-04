@@ -20,7 +20,7 @@ RequestSharedPtr Transaction::read_request() {
   while (true) {
     boost::system::error_code error;
     boost::asio::streambuf buffer;
-    size_t len = boost::asio::read_until(*socket_, buffer, std::string("\r\n\r\n"), error);
+    size_t len = socket_->read_until(buffer, std::string("\r\n\r\n"), error);
 
     std::istream stream(&buffer);
 
@@ -97,14 +97,11 @@ void Transaction::send_response(ResponseSharedPtr &response) {
   std::string& status_string = server_.response_code_.get_status_string(response->get_status_code());
 
   boost::system::error_code ignored_error;
-  boost::asio::write(*socket_, boost::asio::buffer("HTTP/1.1 " + status_string + "\r\n"), ignored_error);
-  boost::asio::write(*socket_, boost::asio::buffer("Content-Type: text/html\r\n"), ignored_error);
-  boost::asio::write(*socket_, boost::asio::buffer("Content-Length: " +
+  boost::asio::write(socket_->get_raw_socket(), boost::asio::buffer("HTTP/1.1 " + status_string + "\r\n"), ignored_error);
+  boost::asio::write(socket_->get_raw_socket(), boost::asio::buffer("Content-Type: text/html\r\n"), ignored_error);
+  boost::asio::write(socket_->get_raw_socket(), boost::asio::buffer("Content-Length: " +
       std::to_string(output.size()) + "\r\n"), ignored_error);
-  boost::asio::write(*socket_, boost::asio::buffer("\r\n"), ignored_error);
-  boost::asio::write(*socket_, boost::asio::buffer(output), ignored_error);
-
-  socket_->shutdown(tcp::socket::shutdown_both, ignored_error);
-  socket_->close();
+  boost::asio::write(socket_->get_raw_socket(), boost::asio::buffer("\r\n"), ignored_error);
+  boost::asio::write(socket_->get_raw_socket(), boost::asio::buffer(output), ignored_error);
 }
 
