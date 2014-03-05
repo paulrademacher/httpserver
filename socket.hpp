@@ -13,6 +13,7 @@ public:
 
   size_t read_until(boost::asio::streambuf& buffer,
     const std::string& delim, boost::system::error_code& error_code);
+  size_t read(boost::asio::streambuf& buffer, boost::system::error_code& error_code);
 
   void write(const std::string& output, boost::system::error_code& error_code);
 

@@ -13,6 +13,10 @@ size_t Socket::read_until(boost::asio::streambuf& buffer,
   return boost::asio::read_until(*socket_, buffer, std::string("\r\n\r\n"), error_code);
 }
 
+size_t Socket::read(boost::asio::streambuf& buffer, boost::system::error_code& error_code) {
+  return boost::asio::read(*socket_, buffer, error_code);
+}
+
 void Socket::write(const std::string& output, boost::system::error_code& error_code) {
   boost::asio::write(*socket_, boost::asio::buffer(output), error_code);
 }

@@ -21,8 +21,6 @@ private:
   SocketSharedPtr socket_;
   Server &server_;
 
-  std::vector<std::string> input_lines_;
-
   RequestSharedPtr read_request();
   void process_request(RequestSharedPtr &request);
   void send_response(ResponseSharedPtr &response);

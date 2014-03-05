@@ -15,60 +15,45 @@ RequestSharedPtr Transaction::read_request() {
   std::string method;
   std::string uri;
   std::string http_version;
+  std::vector<std::string> header_lines;
+  boost::system::error_code error;
+  boost::asio::streambuf buffer;
+  size_t len;
+
+  // TODO: Put a limit on size here.
+  len = socket_->read_until(buffer, std::string("\r\n\r\n"), error);
+
+  std::istream stream(&buffer);
+  while (!stream.eof()) {
+    std::string s;
+    std::getline(stream, s);
+    header_lines.push_back(s);
+  }
+
+  for (auto line : header_lines) {
+    std::cout << line << std::endl;
+  }
+
+  len = socket_->read(buffer, error);
+
+  method = "GET";
+  uri = "/";
+  http_version = "HTTP/1.0";
   RequestSharedPtr request = std::make_shared<Request>();
 
-  while (true) {
-    boost::system::error_code error;
-    boost::asio::streambuf buffer;
-    size_t len = socket_->read_until(buffer, std::string("\r\n\r\n"), error);
+  //  stream >> method >> uri >> http_version;
+  request->method = method;
+  request->uri = uri;
+  request->http_version = http_version;
 
-    std::istream stream(&buffer);
-
-    // TODO: Deal with malformed request (e.g., not 3 parts).
-    // TODO: Deal with too-long uri or header line.
-
-    stream >> method >> uri >> http_version;
-    request->method = method;
-    request->uri = uri;
-    request->http_version = http_version;
-
-    bool is_first_line = true;  // TODO: fix this ugliness.  It's because I'm mixing >>
-                                // and getline.
-    bool done = false;
-
-    while (!stream.eof()) {
-      std::string s;
-      std::getline(stream, s);
-
-      if (is_first_line) {
-        is_first_line = false;
-        continue;
-      }
-
-      if (s.length() < 2) {
-        done = true;
-        break;
-      }
-      input_lines_.push_back(s);
-    }
-
-    if (done) {
-      break;
-    }
-
-    if (error == boost::asio::error::eof) {
-      break;
-    }
-  }
+    //    if (error == boost::asio::error::eof) {
+    //      break;
+    //    }
 
   return request;
 }
 
 void Transaction::process_request(RequestSharedPtr &request) {
-  for (auto line : input_lines_) {
-    std::cout << line << std::endl;
-  }
-
   RouteSharedPtr route = server_.match_route(request->uri, request->method);
 
   ResponseSharedPtr response = std::make_shared<Response>();
