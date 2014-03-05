@@ -10,7 +10,7 @@ ResponseCode::ResponseCode() {
   response_html_ = {
     { 200, "" },
     { 301, "" },
-    { 404, "OOPS" }
+    { 404, "<html><body>Page not found</body></html>" }
     };
 }
 

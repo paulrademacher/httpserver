@@ -13,6 +13,10 @@ size_t Socket::read_until(boost::asio::streambuf& buffer,
   return boost::asio::read_until(*socket_, buffer, std::string("\r\n\r\n"), error_code);
 }
 
+void Socket::write(const std::string& output, boost::system::error_code& error_code) {
+  boost::asio::write(*socket_, boost::asio::buffer(output), error_code);
+}
+
 Socket::~Socket() {
   if (socket_) {
     boost::system::error_code ignored_error;

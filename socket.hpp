@@ -14,6 +14,8 @@ public:
   size_t read_until(boost::asio::streambuf& buffer,
     const std::string& delim, boost::system::error_code& error_code);
 
+  void write(const std::string& output, boost::system::error_code& error_code);
+
   tcp::socket& get_raw_socket();
 
 private:
