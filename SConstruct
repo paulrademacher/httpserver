@@ -6,5 +6,11 @@ env = Environment(
 
 env.Program(
     target="main",
-    source=["main.cpp", "server.cpp", "transaction.cpp", "route.cpp", "response.cpp",
-            "response_code.cpp", "socket.cpp"])
+    source=["main.cpp",
+            "server.cpp",
+            "transaction.cpp",
+            "route.cpp",
+            "request.cpp",
+            "response.cpp",
+            "response_code.cpp",
+            "socket.cpp"])

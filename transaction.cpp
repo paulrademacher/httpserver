@@ -34,17 +34,9 @@ RequestSharedPtr Transaction::read_request() {
     std::cout << line << std::endl;
   }
 
-  len = socket_->read(buffer, error);
+  //  len = socket_->read(buffer, error);
 
-  method = "GET";
-  uri = "/";
-  http_version = "HTTP/1.0";
-  RequestSharedPtr request = std::make_shared<Request>();
-
-  //  stream >> method >> uri >> http_version;
-  request->method = method;
-  request->uri = uri;
-  request->http_version = http_version;
+  RequestSharedPtr request = std::make_shared<Request>(header_lines, "");
 
     //    if (error == boost::asio::error::eof) {
     //      break;
