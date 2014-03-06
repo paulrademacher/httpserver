@@ -46,15 +46,15 @@ RequestSharedPtr Transaction::read_request() {
 }
 
 void Transaction::process_request(RequestSharedPtr &request) {
-  RouteSharedPtr route = server_.match_route(request->uri, request->method);
+  RouteSharedPtr route = server_.match_route(request->path, request->method);
 
   ResponseSharedPtr response = std::make_shared<Response>();
   if (route) {
-    printf("MATCH: %s\n", request->uri.c_str());
+    printf("MATCH: %s\n", request->path.c_str());
     route->call(request, response);
     send_response(response);
   } else {
-    printf("NO MATCH: %s\n", request->uri.c_str());
+    printf("NO MATCH: %s\n", request->path.c_str());
 
     response->set_status_code(404);
     send_response(response);

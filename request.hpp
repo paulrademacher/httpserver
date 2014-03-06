@@ -9,6 +9,8 @@ public:
   std::string method;
   std::string uri;
   std::string http_version;
+  std::string path;  // URI up to query string.
+  std::string query;  // Query string, without leading '?'.
 
   Request(std::vector<std::string>& header_lines, std::string content);
 };
