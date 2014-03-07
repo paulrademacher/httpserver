@@ -8,7 +8,7 @@ void do_index(Request &request, Response &response) {
   response.write("<html>\n");
   response.write("<b>HI!</b>\n");
   response.write("<hr>POST:<form method=post><input type=submit></form>\n");
-  response.write("<hr>GET:<form method=get><input type=submit></form>\n");
+  response.write("<hr>GET:<form method=get><input type=text name=p1 value=1 /><input type=text name=p1 value=1 /><input type=text name=p2 value=2 /><input type=submit></form>\n");
   response.write("</html>\n");
 }
 

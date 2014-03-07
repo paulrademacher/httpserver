@@ -13,4 +13,5 @@ env.Program(
             "request.cpp",
             "response.cpp",
             "response_code.cpp",
-            "socket.cpp"])
+            "socket.cpp",
+            "utils.cpp"])
