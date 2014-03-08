@@ -1,3 +1,5 @@
+#include <boost/algorithm/string.hpp>
+
 #include "response.hpp"
 #include "server.hpp"
 #include "transaction.hpp"
@@ -23,20 +25,60 @@ RequestSharedPtr Transaction::read_request() {
   // TODO: Put a limit on size here.
   len = socket_->read_until(buffer, std::string("\r\n\r\n"), error);
 
+  // read_until may read past the delimeter, resulting in leftover bytes.
+  // http://think-async.com/Asio/boost_asio_1_2_0/doc/html/boost_asio/overview/core/line_based.html
+  std::string leftover_bytes;
+
   std::istream stream(&buffer);
   while (!stream.eof()) {
     std::string s;
     std::getline(stream, s);
-    header_lines.push_back(s);
+    if (s[s.length() - 1] == '\r') {
+      s = s.substr(0, s.length() - 1);  // Strip CR.
+    } else {
+      printf("ERROR: [%s]\n", s.c_str());
+    }
+
+    if (s.length() > 0) {
+      header_lines.push_back(s);
+    } else {
+      // Done reading headers.  Slurp any leftover data.
+      while (!stream.eof()) {
+        std::string leftover_s;
+        std::getline(stream, leftover_s);
+        leftover_bytes += leftover_s;
+      }
+    }
   }
 
   for (auto line : header_lines) {
-    std::cout << line << std::endl;
+    //std::cout << "header: [" << line << "]" << std::endl;
   }
 
-  //  len = socket_->read(buffer, error);
+  std::string body;
+  for (int i = 1; i < header_lines.size(); i++) {
+    std::string header = header_lines[i];
+    boost::algorithm::to_lower(header);
+    std::cout << header << std::endl;
+    if (boost::algorithm::starts_with(header, "content-length: ")) {
+      int content_length = std::stoi(header.substr(header.find(' ') + 1));
+      // TODO: Max content length.
+      if (content_length > 0) {
+        // We may have leftover bytes from read_until operation.
 
-  RequestSharedPtr request = std::make_shared<Request>(header_lines, "");
+        std::vector<char> body_bytes(content_length - leftover_bytes.length());
+        len = boost::asio::read(socket_->get_raw_socket(), boost::asio::buffer(body_bytes));
+        printf("LEN: %d\n", len);
+        if (error) {
+          // TODO: handle error.
+        }
+        body = leftover_bytes + std::string(body_bytes.data(), body_bytes.size());
+        // TODO: Check # bytes read.
+      }
+    }
+  }
+
+  RequestSharedPtr request = std::make_shared<Request>(header_lines, body);
 
     //    if (error == boost::asio::error::eof) {
     //      break;

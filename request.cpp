@@ -7,10 +7,12 @@
 #include "request.hpp"
 #include "utils.hpp"
 
-Request::Request(std::vector<std::string>& header_lines, std::string content) {
+Request::Request(std::vector<std::string>& header_lines, std::string body_in) {
   std::stringstream stream;
   stream << header_lines[0];
   stream >> method >> uri >> http_version;
+
+  body = body_in;
 
   size_t query_position = uri.find_first_of('?');
   if (query_position != std::string::npos) {
@@ -20,12 +22,26 @@ Request::Request(std::vector<std::string>& header_lines, std::string content) {
     path = uri;
   }
 
-  if (query.size()) {
-    // Parse query parameters.
-    StrVectorSharedPtr params = split_string(query, '&');
+  parseParameterString(query);
+  if (body.length() > 0) {
+    // TODO: Check www-form-urlencoded.
+    parseParameterString(body);
+  }
 
-    for (auto param : *params) {
-      StrVectorSharedPtr pair = split_string(param, '=');
+  std::cout << "method: " << method << std::endl;
+  std::cout << "uri: " << uri << std::endl;
+  std::cout << "http_version: " << http_version << std::endl;
+  std::cout << "path: " << path << std::endl;
+  std::cout << "query: " << query << std::endl;
+  std::cout << "body: " << body << std::endl;
+}
+
+void Request::parseParameterString(std::string parameter_string) {
+  if (parameter_string.size()) {
+    StrVectorSharedPtr pairs = split_string(parameter_string, '&');
+
+    for (auto entry : *pairs) {
+      StrVectorSharedPtr pair = split_string(entry, '=');
       if (pair->size() == 2) {
         auto &key = (*pair)[0];
         auto &encoded_value = (*pair)[1];
@@ -38,20 +54,14 @@ Request::Request(std::vector<std::string>& header_lines, std::string content) {
           std::cout << key << "= " << unencoded_value << "  (" << encoded_value << ")" << std::endl;
         }
 
-        query_params.insert({key, unencoded_value});
+        params.insert({key, unencoded_value});
 
-        if (!query_params_multi.count(key)) {
+        if (!params_multi.count(key)) {
           std::vector<std::string> new_vector;
-          query_params_multi[key] = new_vector; // TODO: CHECK MEMORY RELEASE.
+          params_multi[key] = new_vector; // TODO: CHECK MEMORY RELEASE.
         }
-        query_params_multi[key].push_back(unencoded_value);
+        params_multi[key].push_back(unencoded_value);
       }
     }
   }
-
-  std::cout << "method: " << method << std::endl;
-  std::cout << "uri: " << uri << std::endl;
-  std::cout << "http_version: " << http_version << std::endl;
-  std::cout << "path: " << path << std::endl;
-  std::cout << "query: " << query << std::endl;
 }

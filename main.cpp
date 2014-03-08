@@ -5,11 +5,11 @@
 #include "server.hpp"
 
 void do_index(Request &request, Response &response) {
-  std::string p2 = request.query_params["p2"];
+  std::string p2 = request.params["p2"];
 
   response << "<html>\n";
   response << "<b>HI!</b>\n";
-  response << "<hr>POST:<form method=post><input type=submit></form>\n";
+  response << "<hr>POST:<form method=post><input type=text name=p1 value=1 /><input type=text name=p1 value=1 /><input type=text name=p2 value=2 /><input type=submit></form>\n";
   response << "P2= " << p2 << "<br>";
   response << "<hr>GET:<form method=get><input type=text name=p1 value=1 /><input type=text name=p1 value=1 /><input type=text name=p2 value=2 /><input type=submit></form>\n";
   response << "</html>\n";
