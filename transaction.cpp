@@ -68,7 +68,6 @@ RequestSharedPtr Transaction::read_request() {
 
         std::vector<char> body_bytes(content_length - leftover_bytes.length());
         len = boost::asio::read(socket_->get_raw_socket(), boost::asio::buffer(body_bytes));
-        printf("LEN: %d\n", len);
         if (error) {
           // TODO: handle error.
         }

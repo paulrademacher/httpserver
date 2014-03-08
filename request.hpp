@@ -15,6 +15,9 @@ public:
   std::map<std::string, std::string> params;
   std::map<std::string, std::vector<std::string>> params_multi;
 
+  // Retrieves single query parameter.
+  std::string operator[](const std::string &param);
+
   Request(std::vector<std::string>& header_lines, std::string body);
 
 private:

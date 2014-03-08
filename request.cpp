@@ -65,3 +65,7 @@ void Request::parseParameterString(std::string parameter_string) {
     }
   }
 }
+
+std::string Request::operator[](const std::string &param) {
+  return params[param];
+}

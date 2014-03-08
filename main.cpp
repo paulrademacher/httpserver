@@ -5,7 +5,7 @@
 #include "server.hpp"
 
 void do_index(Request &request, Response &response) {
-  std::string p2 = request.params["p2"];
+  std::string p2 = request["p2"];
 
   response << "<html>\n";
   response << "<b>HI!</b>\n";
