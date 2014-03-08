@@ -11,6 +11,12 @@ public:
   void write(std::string &str);
   void write(std::string str);
 
+  // Write using stream interface.
+  template<typename T> Response& operator<<(T item) {
+    stream_ << item;
+    return *this;
+  }
+
   std::string get();
 
   void set_status_code(int status_code);
