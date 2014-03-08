@@ -3,6 +3,7 @@
 #include <sstream>
 #include <string>
 
+#include "encoding.hpp"
 #include "request.hpp"
 #include "utils.hpp"
 
@@ -23,19 +24,27 @@ Request::Request(std::vector<std::string>& header_lines, std::string content) {
     // Parse query parameters.
     StrVectorSharedPtr params = split_string(query, '&');
 
-    for (std::string param : *params) {
+    for (auto param : *params) {
       StrVectorSharedPtr pair = split_string(param, '=');
       if (pair->size() == 2) {
-        std::string &key = (*pair)[0];
-        std::string &value = (*pair)[1];
+        auto &key = (*pair)[0];
+        auto &encoded_value = (*pair)[1];
 
-        query_params.insert({key, value});
+        auto unencoded_value = uri_unencode_string(encoded_value);
+
+        if (unencoded_value == encoded_value) {
+          std::cout << key << "= " << unencoded_value << std::endl;
+        } else {
+          std::cout << key << "= " << unencoded_value << "  (" << encoded_value << ")" << std::endl;
+        }
+
+        query_params.insert({key, unencoded_value});
 
         if (!query_params_multi.count(key)) {
           std::vector<std::string> new_vector;
           query_params_multi[key] = new_vector; // TODO: CHECK MEMORY RELEASE.
         }
-        query_params_multi[key].push_back(value);
+        query_params_multi[key].push_back(unencoded_value);
       }
     }
   }

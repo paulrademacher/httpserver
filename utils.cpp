@@ -10,4 +10,3 @@ StrVectorSharedPtr split_string(const std::string &string, char delim) {
   }
   return items;
 }
-
