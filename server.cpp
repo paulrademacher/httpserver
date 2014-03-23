@@ -28,22 +28,16 @@ void Server::run() {
   io_service_->run();
 }
 
-SocketSharedPtr _socket;
-
 void Server::async_accept() {
   try {
-    //    SocketSharedPtr *socket = new SocketSharedPtr(new Socket(*io_service_));
-    _socket.reset(new Socket(*io_service_));
+    SocketSharedPtr socket(new Socket(*io_service_));
 
-    printf("THIS1: %p\n", this);
+    acceptor_->async_accept(socket->get_raw_socket(),
+      [=](const boost::system::error_code &error) mutable {
 
-    acceptor_->async_accept(_socket->get_raw_socket(),
-      [&](const boost::system::error_code &error) {
-
-        printf("THIS2: %p\n", this);
         printf("---------------- Connection: --------------------\n");
 
-        TransactionSharedPtr transaction(new Transaction(*this, _socket));
+        TransactionSharedPtr transaction(new Transaction(*this, socket));
         transaction->start();
 
         async_accept();
@@ -80,8 +74,6 @@ RouteSharedPtr Server::match_route(std::string &uri, std::string &method_string)
 void Server::async_wait(TimeoutHandler handler, unsigned int timeout_ms) {
   // http://www.boost.org/doc/libs/1_55_0/doc/html/boost_asio/reference/steady_timer.html
 
-  printf("ASYNC WAIT: %d\n", timeout_ms);
-
   SteadyTimerSharedPtr timer = std::make_shared<boost::asio::steady_timer>(*io_service_,
       std::chrono::steady_clock::now() + std::chrono::milliseconds(timeout_ms));
 
@@ -92,7 +84,6 @@ void Server::async_wait(TimeoutHandler handler, unsigned int timeout_ms) {
       std::cout << "handler: " << error.message() << std::endl;
       if (!error) {
         // Timer expired.
-        printf("Starting handler\n");
         handler();
       }
       steady_timers_.erase(timer);

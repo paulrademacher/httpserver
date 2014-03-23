@@ -10,9 +10,9 @@ tcp::socket& Socket::get_raw_socket() {
   return *socket_;
 }
 
-size_t Socket::read_until(boost::asio::streambuf& buffer,
-    const std::string& delim, boost::system::error_code& error_code) {
-  return boost::asio::read_until(*socket_, buffer, std::string("\r\n\r\n"), error_code);
+void Socket::read_until(boost::asio::streambuf& buffer,
+    const std::string& delim, ReadHandler handler) {
+  return boost::asio::async_read_until(*socket_, buffer, std::string("\r\n\r\n"), handler);
 }
 
 size_t Socket::read(boost::asio::streambuf& buffer, boost::system::error_code& error_code) {

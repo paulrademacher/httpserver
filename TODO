@@ -7,3 +7,6 @@ max length on buffer read in http headers
 File layout (src dir, examples dir, etc)
 
 Implement chaining of >> operator for routes?  (is that useful?)
+
+Move the creation entirely inside Transaction, to better future-proof against accidental
+deletion of socket

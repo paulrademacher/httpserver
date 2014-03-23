@@ -9,9 +9,7 @@ Server *server;
 void do_index(RequestSharedPtr request, ResponseSharedPtr response) {
   std::string p2 = (*request)["p2"];
 
-  if (true)
   server->async_wait([=]() mutable {
-      printf("INSIDE HANDLER\n");
       *response << "<html>\n";
       *response << "<b>HI!</b>\n";
       *response << "<hr>POST:<form method=post><input type=text name=p1 value=1 /><input type=text name=p1 value=1 /><input type=text name=p2 value=2 /><input type=submit></form>\n";

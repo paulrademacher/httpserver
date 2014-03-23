@@ -11,6 +11,11 @@
 Request::Request(std::vector<std::string>& header_lines, std::string body_in) {
   DEBUG_CTOR("Request");
 
+  if (header_lines.size() == 0) {
+    printf("Request: No header lines\n");
+    return;
+  }
+
   std::stringstream stream;
   stream << header_lines[0];
   stream >> method >> uri >> http_version;

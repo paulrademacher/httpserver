@@ -23,6 +23,7 @@ public:
 private:
   SocketSharedPtr socket_;
   Server &server_;
+  boost::asio::streambuf read_buffer_;
 
   RequestSharedPtr read_request();
   void process_request(RequestSharedPtr &request);

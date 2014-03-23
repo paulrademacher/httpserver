@@ -11,8 +11,21 @@ Transaction::Transaction(Server& server, SocketSharedPtr &socket)
 }
 
 void Transaction::start() {
-  RequestSharedPtr request = read_request();
-  process_request(request);
+  // TODO: Put a limit on size here.
+
+  // Hold on to this Transaction for lifetime of closure.
+  TransactionSharedPtr hold_this = shared_from_this();
+
+  socket_->read_until(read_buffer_, std::string("\r\n\r\n"),
+    [&, hold_this](const boost::system::error_code &error, std::size_t bytes_received) mutable {
+
+      // TODO: Does error matter here?
+
+      RequestSharedPtr request = read_request();
+      if (request) {
+        process_request(request);
+      }
+    });
 }
 
 RequestSharedPtr Transaction::read_request() {
@@ -21,25 +34,18 @@ RequestSharedPtr Transaction::read_request() {
   std::string http_version;
   std::vector<std::string> header_lines;
   boost::system::error_code error;
-  boost::asio::streambuf buffer;
-  size_t len;
-
-  // TODO: Put a limit on size here.
-  printf("Reading from socket @%p\n", *socket_);
-  len = socket_->read_until(buffer, std::string("\r\n\r\n"), error);
 
   // read_until may read past the delimeter, resulting in leftover bytes.
   // http://think-async.com/Asio/boost_asio_1_2_0/doc/html/boost_asio/overview/core/line_based.html
   std::string leftover_bytes;
 
-  std::istream stream(&buffer);
+  std::istream stream(&read_buffer_);
   while (!stream.eof()) {
     std::string s;
     std::getline(stream, s);
     if (s[s.length() - 1] == '\r') {
       s = s.substr(0, s.length() - 1);  // Strip CR.
     } else {
-      printf("Here?\n");
       printf("ERROR: [%s]\n", s.c_str());
     }
 
@@ -71,7 +77,7 @@ RequestSharedPtr Transaction::read_request() {
         // We may have leftover bytes from read_until operation.
 
         std::vector<char> body_bytes(content_length - leftover_bytes.length());
-        len = boost::asio::read(socket_->get_raw_socket(), boost::asio::buffer(body_bytes));
+        boost::asio::read(socket_->get_raw_socket(), boost::asio::buffer(body_bytes));
         if (error) {
           // TODO: handle error.
         }
@@ -81,15 +87,18 @@ RequestSharedPtr Transaction::read_request() {
     }
   }
 
-  RequestSharedPtr request = std::make_shared<Request>(header_lines, body);
+  if (header_lines.size() > 0) {
+    RequestSharedPtr request = std::make_shared<Request>(header_lines, body);
+    printf("Done reading request\n");
+    return request;
+  } else {
+    return nullptr;
+  }
 
     //    if (error == boost::asio::error::eof) {
     //      break;
     //    }
 
-  printf("Done reading request\n");
-
-  return request;
 }
 
 void Transaction::process_request(RequestSharedPtr &request) {
