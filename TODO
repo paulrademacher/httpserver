@@ -5,3 +5,5 @@ Class App instead of Server (multiple apps per server)
 max length on buffer read in http headers
 
 File layout (src dir, examples dir, etc)
+
+Implement chaining of >> operator for routes?  (is that useful?)

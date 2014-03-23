@@ -1,6 +1,8 @@
 #include "socket.hpp"
 
 Socket::Socket(boost::asio::io_service& io_service) {
+  DEBUG_CTOR("Socket");
+
   socket_.reset(new tcp::socket(io_service));
 }
 
@@ -22,6 +24,8 @@ void Socket::write(const std::string& output, boost::system::error_code& error_c
 }
 
 Socket::~Socket() {
+  DEBUG_DTOR("Socket");
+
   if (socket_) {
     boost::system::error_code ignored_error;
     socket_->shutdown(tcp::socket::shutdown_both, ignored_error);

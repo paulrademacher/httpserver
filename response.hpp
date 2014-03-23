@@ -4,9 +4,13 @@
 #include <string>
 #include <sstream>
 
+#include "common.hpp"
+#include "transaction.hpp"
+
 class Response {
 public:
-  Response();
+  Response(TransactionSharedPtr transaction);
+  ~Response();
 
   void write(std::string &str);
   void write(std::string str);
@@ -25,6 +29,7 @@ public:
 private:
   std::stringstream stream_;
   int status_code_;
+  TransactionSharedPtr transaction_;
 };
 
 typedef std::shared_ptr<Response> ResponseSharedPtr;

@@ -6,6 +6,8 @@
 
 Transaction::Transaction(Server& server, SocketSharedPtr &socket)
   : socket_(socket), server_(server) {
+
+  DEBUG_CTOR("Transaction");
 }
 
 void Transaction::start() {
@@ -23,6 +25,7 @@ RequestSharedPtr Transaction::read_request() {
   size_t len;
 
   // TODO: Put a limit on size here.
+  printf("Reading from socket @%p\n", *socket_);
   len = socket_->read_until(buffer, std::string("\r\n\r\n"), error);
 
   // read_until may read past the delimeter, resulting in leftover bytes.
@@ -36,6 +39,7 @@ RequestSharedPtr Transaction::read_request() {
     if (s[s.length() - 1] == '\r') {
       s = s.substr(0, s.length() - 1);  // Strip CR.
     } else {
+      printf("Here?\n");
       printf("ERROR: [%s]\n", s.c_str());
     }
 
@@ -83,36 +87,38 @@ RequestSharedPtr Transaction::read_request() {
     //      break;
     //    }
 
+  printf("Done reading request\n");
+
   return request;
 }
 
 void Transaction::process_request(RequestSharedPtr &request) {
   RouteSharedPtr route = server_.match_route(request->path, request->method);
 
-  ResponseSharedPtr response = std::make_shared<Response>();
+  ResponseSharedPtr response = std::make_shared<Response>(shared_from_this());
   if (route) {
     printf("MATCH: %s\n", request->path.c_str());
     route->call(request, response);
-    send_response(response);
   } else {
     printf("NO MATCH: %s\n", request->path.c_str());
 
     response->set_status_code(404);
-    send_response(response);
+
+    // response will fall out of scope and deallocate (send itself) immediately.
   }
 }
 
-void Transaction::send_response(ResponseSharedPtr &response) {
-  std::string output = response->get();
+void Transaction::send_response(Response &response) {
+  std::string output = response.get();
 
   if (!output.length()) {
     // Use default response HTML if nothing was set.
-    output = server_.response_code_.get_response_html(response->get_status_code());
+    output = server_.response_code_.get_response_html(response.get_status_code());
   }
 
-  std::cout << "ST: " << response->get_status_code() << std::endl;
+  std::cout << "ST: " << response.get_status_code() << std::endl;
 
-  std::string& status_string = server_.response_code_.get_status_string(response->get_status_code());
+  std::string& status_string = server_.response_code_.get_status_string(response.get_status_code());
 
   boost::system::error_code ignored_error;
   socket_->write("HTTP/1.1 " + status_string + "\r\n", ignored_error);
@@ -120,6 +126,8 @@ void Transaction::send_response(ResponseSharedPtr &response) {
   socket_->write("Content-Length: " + std::to_string(output.size()) + "\r\n", ignored_error);
   socket_->write("\r\n", ignored_error);
   socket_->write(output, ignored_error);
-
 }
 
+Transaction::~Transaction() {
+  DEBUG_DTOR("Transaction");
+}

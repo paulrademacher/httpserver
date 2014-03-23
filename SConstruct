@@ -1,7 +1,10 @@
 env = Environment(
     CXX="c++",
     CCFLAGS="-std=c++11 -stdlib=libc++", ## -Weverything",
-    LIBS=["boost_system", "boost_regex-mt"],
+
+    # /usr/local/lib
+    LIBS=["boost_system", "boost_regex-mt", "boost_thread-mt", "boost_coroutine-mt"],
+
     LINKFLAGS="-stdlib=libc++")
 
 env.Program(

@@ -9,6 +9,6 @@ class RequestHandler {
 public:
 };
 
-typedef void (*RequestHandlerFunction)(Request &request, Response &response);
+typedef void (*RequestHandlerFunction)(RequestSharedPtr request, ResponseSharedPtr response);
 
 #endif // __HTTP_REQUEST_HANDLER_H__

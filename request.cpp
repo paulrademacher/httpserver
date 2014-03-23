@@ -3,11 +3,14 @@
 #include <sstream>
 #include <string>
 
+#include "common.hpp"
 #include "encoding.hpp"
 #include "request.hpp"
 #include "utils.hpp"
 
 Request::Request(std::vector<std::string>& header_lines, std::string body_in) {
+  DEBUG_CTOR("Request");
+
   std::stringstream stream;
   stream << header_lines[0];
   stream >> method >> uri >> http_version;
@@ -64,6 +67,10 @@ void Request::parseParameterString(std::string parameter_string) {
       }
     }
   }
+}
+
+Request::~Request() {
+  DEBUG_DTOR("Request");
 }
 
 std::string Request::operator[](const std::string &param) {

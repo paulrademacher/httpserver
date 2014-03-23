@@ -3,6 +3,8 @@
 
 #include <boost/asio.hpp>
 
+#include "common.hpp"
+
 using boost::asio::ip::tcp;
 
 class Socket {

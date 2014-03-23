@@ -11,10 +11,13 @@
 using boost::asio::ip::tcp;
 
 class Server;
+class Response;
 
-class Transaction {
+class Transaction : public std::enable_shared_from_this<Transaction> {
 public:
   explicit Transaction(Server &server, SocketSharedPtr &socket_);
+
+  ~Transaction();
 
   void start();
 private:
@@ -23,7 +26,9 @@ private:
 
   RequestSharedPtr read_request();
   void process_request(RequestSharedPtr &request);
-  void send_response(ResponseSharedPtr &response);
+  void send_response(Response &response);
+
+  friend Response;  // TODO: Is this right OO layout?
 };
 
 typedef std::shared_ptr<Transaction> TransactionSharedPtr;

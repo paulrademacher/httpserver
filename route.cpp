@@ -1,7 +1,12 @@
 #include "route.hpp"
 
-Route::Route(std::string regex_string, RequestHandlerFunction func, MethodEnum method)
-  : regex_(boost::regex(regex_string)), func_(func), method_(method) {
+Route::Route(Server *server, std::string regex_string, RequestHandlerFunction func, MethodEnum method)
+  : regex_(boost::regex(regex_string)), func_(func), method_(method), server_(server) {
+  DEBUG_CTOR("Route");
+}
+
+Route::~Route() {
+  DEBUG_DTOR("Route");
 }
 
 bool Route::matches(std::string &uri, MethodEnum method) {
@@ -15,7 +20,7 @@ bool Route::matches(std::string &uri, MethodEnum method) {
 
 bool Route::call(RequestSharedPtr request, ResponseSharedPtr response) {
   if (func_) {
-    func_(*request, *response);
+    func_(request, response);
     return true;
   } else {
     // TODO: Handle error.

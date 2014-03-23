@@ -16,29 +16,49 @@ Server::Server(std::string host, int port) {
   acceptor_.reset(new tcp::acceptor(*io_service_, tcp::endpoint(tcp::v4(), port_)));
 }
 
+void ghandler(const boost::system::error_code& error) {
+  std::cout << "Handler: " << error.message() << std::endl;
+}
+
 void Server::run() {
-  printf("Starting server on port %d...\n", port_);
+  std::cout << "Starting server on port " << port_ << "..." << std::endl;
 
+  async_accept();
+
+  io_service_->run();
+}
+
+SocketSharedPtr _socket;
+
+void Server::async_accept() {
   try {
-    while (true) {
-      SocketSharedPtr socket(new Socket(*io_service_));
-      acceptor_->accept(socket->get_raw_socket());
+    //    SocketSharedPtr *socket = new SocketSharedPtr(new Socket(*io_service_));
+    _socket.reset(new Socket(*io_service_));
 
-      printf("---------------- Connection: --------------------\n");
+    printf("THIS1: %p\n", this);
 
-      TransactionSharedPtr transaction(new Transaction(*this, socket));
+    acceptor_->async_accept(_socket->get_raw_socket(),
+      [&](const boost::system::error_code &error) {
 
-      transaction->start();
-    }
+        printf("THIS2: %p\n", this);
+        printf("---------------- Connection: --------------------\n");
+
+        TransactionSharedPtr transaction(new Transaction(*this, _socket));
+        transaction->start();
+
+        async_accept();
+      });
   } catch (std::exception& e) {
-    std::cerr << "EXCEPTION: " << e.what() << std::endl;
+    std::cerr << "EXCEPTION in async_accept: " << e.what() << std::endl;
   }
 }
 
-void Server::add_route(std::string regex_string, RequestHandlerFunction func,
-    MethodEnum method) {
-  RouteSharedPtr route = std::make_shared<Route>(regex_string, func, method);
+RoutePtr Server::route(std::string regex_string, MethodEnum method,
+    RequestHandlerFunction func) {
+  RouteSharedPtr route = std::make_shared<Route>(this, regex_string, func, method);
   routes_.push_back(route);
+  RoutePtr route_ptr(route);
+  return route_ptr;
 }
 
 RouteSharedPtr Server::match_route(std::string &uri, std::string &method_string) {
@@ -55,4 +75,26 @@ RouteSharedPtr Server::match_route(std::string &uri, std::string &method_string)
     }
   }
   return nullptr;
+}
+
+void Server::async_wait(TimeoutHandler handler, unsigned int timeout_ms) {
+  // http://www.boost.org/doc/libs/1_55_0/doc/html/boost_asio/reference/steady_timer.html
+
+  printf("ASYNC WAIT: %d\n", timeout_ms);
+
+  SteadyTimerSharedPtr timer = std::make_shared<boost::asio::steady_timer>(*io_service_,
+      std::chrono::steady_clock::now() + std::chrono::milliseconds(timeout_ms));
+
+  // Hold on to timer so it doesn't go out of scope and cancel itself.
+  steady_timers_.insert(timer);
+
+  timer->async_wait([=] (const boost::system::error_code& error) {
+      std::cout << "handler: " << error.message() << std::endl;
+      if (!error) {
+        // Timer expired.
+        printf("Starting handler\n");
+        handler();
+      }
+      steady_timers_.erase(timer);
+    });
 }

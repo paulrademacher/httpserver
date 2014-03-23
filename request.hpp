@@ -19,6 +19,7 @@ public:
   std::string operator[](const std::string &param);
 
   Request(std::vector<std::string>& header_lines, std::string body);
+  ~Request();
 
 private:
   void parseParameterString(std::string parameter_string);
