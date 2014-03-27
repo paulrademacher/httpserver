@@ -1,15 +1,14 @@
-#ifndef __HTTP_RESPONSE_H__
-#define __HTTP_RESPONSE_H__
+#ifndef __HTTP_RESPONSE_HPP__
+#define __HTTP_RESPONSE_HPP__
 
 #include <string>
 #include <sstream>
 
 #include "common.hpp"
-#include "transaction.hpp"
 
 class Response {
 public:
-  Response(TransactionSharedPtr transaction);
+  Response(Transaction &transaction);
   ~Response();
 
   void write(std::string &str);
@@ -27,11 +26,12 @@ public:
 
   int get_status_code();
 private:
+  Transaction &transaction_;  // Owner.
+
   std::stringstream stream_;
   int status_code_;
-  TransactionSharedPtr transaction_;
 };
 
 typedef std::shared_ptr<Response> ResponseSharedPtr;
 
-#endif // __HTTP_RESPONSE_H__
+#endif // __HTTP_RESPONSE_HPP__

@@ -1,5 +1,5 @@
-#ifndef __HTTP_SOCKET_H__
-#define __HTTP_SOCKET_H__
+#ifndef __HTTP_SOCKET_HPP__
+#define __HTTP_SOCKET_HPP__
 
 #include <boost/asio.hpp>
 
@@ -29,4 +29,4 @@ private:
 
 typedef std::shared_ptr<Socket> SocketSharedPtr;
 
-#endif // __HTTP_SOCKET_H__
+#endif // __HTTP_SOCKET_HPP__

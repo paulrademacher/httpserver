@@ -4,22 +4,27 @@
 
 #include "server.hpp"
 
-Server *server;
-
-void do_index(RequestSharedPtr request, ResponseSharedPtr response) {
+void do_index(RequestSharedPtr request, ResponseSharedPtr response,
+    AsyncMethodsSharedPtr async_methods) {
   std::string p2 = (*request)["p2"];
 
-  server->async_wait([=]() mutable {
+  async_methods->async_wait([=]() mutable {
+      printf("HERE!\n");
       *response << "<html>\n";
       *response << "<b>HI!</b>\n";
       *response << "<hr>POST:<form method=post><input type=text name=p1 value=1 /><input type=text name=p1 value=1 /><input type=text name=p2 value=2 /><input type=submit></form>\n";
       *response << "P2= " << p2 << "<br>";
       *response << "<hr>GET:<form method=get><input type=text name=p1 value=1 /><input type=text name=p1 value=1 /><input type=text name=p2 value=2 /><input type=submit></form>\n";
-      *response << "</html>\n";
-    }, 5000);
+
+      async_methods->async_wait([=]() mutable {
+          *response << "<br>DONE</html>\n";
+          *response << "</html>\n";
+        }, 2000);
+      }, 2000);
 }
 
-void do_index_post(RequestSharedPtr request, ResponseSharedPtr response) {
+void do_index_post(RequestSharedPtr request, ResponseSharedPtr response,
+    AsyncMethodsSharedPtr async_methods) {
   *response << "<html>\n";
   *response << "<b>DA POST</b>\n";
   *response << "<form method=post><input type=submit></form>\n";
@@ -27,7 +32,8 @@ void do_index_post(RequestSharedPtr request, ResponseSharedPtr response) {
 }
 
 
-void do_foo(RequestSharedPtr request, ResponseSharedPtr response) {
+void do_foo(RequestSharedPtr request, ResponseSharedPtr response,
+    AsyncMethodsSharedPtr async_methods) {
   *response << "<html>\n";
   *response << "FOOOOOO!\n";
   *response << "</html>\n";
@@ -45,13 +51,13 @@ int main(int argc, char *argv[]) {
     port = atoi(argv[1]);
   }
 
-  server = new Server(hostname, port);
+  Server server(hostname, port);
 
-  server->route("/", METHOD_GET) >> do_index;
-  server->route("/", METHOD_POST) >> do_index_post;
-  server->route("/f.*") >> do_foo;
+  server.route("/", METHOD_GET) >> do_index;
+  server.route("/", METHOD_POST) >> do_index_post;
+  server.route("/f.*") >> do_foo;
 
-  server->run();
+  server.run();
 
   return 0;
 }

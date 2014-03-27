@@ -3,12 +3,13 @@
 #include <sstream>
 #include <string>
 
-#include "common.hpp"
 #include "encoding.hpp"
 #include "request.hpp"
 #include "utils.hpp"
 
-Request::Request(std::vector<std::string>& header_lines, std::string body_in) {
+Request::Request(Transaction &transaction,
+    std::vector<std::string>& header_lines, std::string body_in)
+    : transaction_(transaction) {
   DEBUG_CTOR("Request");
 
   if (header_lines.size() == 0) {

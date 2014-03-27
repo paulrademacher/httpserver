@@ -37,7 +37,8 @@ void Server::async_accept() {
 
         printf("---------------- Connection: --------------------\n");
 
-        TransactionSharedPtr transaction(new Transaction(*this, socket));
+        TransactionSharedPtr transaction(new Transaction(*this, socket, *io_service_));
+        transactions_.insert(transaction);  // TODO: Release this.
         transaction->start();
 
         async_accept();
@@ -49,7 +50,7 @@ void Server::async_accept() {
 
 RoutePtr Server::route(std::string regex_string, MethodEnum method,
     RequestHandlerFunction func) {
-  RouteSharedPtr route = std::make_shared<Route>(this, regex_string, func, method);
+  RouteSharedPtr route = std::make_shared<Route>(*this, regex_string, func, method);
   routes_.push_back(route);
   RoutePtr route_ptr(route);
   return route_ptr;
@@ -71,21 +72,9 @@ RouteSharedPtr Server::match_route(std::string &uri, std::string &method_string)
   return nullptr;
 }
 
-void Server::async_wait(TimeoutHandler handler, unsigned int timeout_ms) {
-  // http://www.boost.org/doc/libs/1_55_0/doc/html/boost_asio/reference/steady_timer.html
-
-  SteadyTimerSharedPtr timer = std::make_shared<boost::asio::steady_timer>(*io_service_,
-      std::chrono::steady_clock::now() + std::chrono::milliseconds(timeout_ms));
-
-  // Hold on to timer so it doesn't go out of scope and cancel itself.
-  steady_timers_.insert(timer);
-
-  timer->async_wait([=] (const boost::system::error_code& error) {
-      std::cout << "handler: " << error.message() << std::endl;
-      if (!error) {
-        // Timer expired.
-        handler();
-      }
-      steady_timers_.erase(timer);
-    });
+void Server::notify_transaction_finished(TransactionSharedPtr transaction) {
+  printf("Server received transaction finished\n");
+  printf("Count pre : %lu\n", transactions_.size());
+  transactions_.erase(transaction);
+  printf("Count post : %lu\n", transactions_.size());
 }

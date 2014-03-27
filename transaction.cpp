@@ -1,11 +1,13 @@
 #include <boost/algorithm/string.hpp>
 
+#include "async_methods.hpp"
 #include "response.hpp"
 #include "server.hpp"
 #include "transaction.hpp"
 
-Transaction::Transaction(Server& server, SocketSharedPtr &socket)
-  : socket_(socket), server_(server) {
+Transaction::Transaction(Server &server, SocketSharedPtr socket,
+    boost::asio::io_service &io_service)
+  : server_(server), socket_(socket), io_service_(io_service) {
 
   DEBUG_CTOR("Transaction");
 }
@@ -88,7 +90,7 @@ RequestSharedPtr Transaction::read_request() {
   }
 
   if (header_lines.size() > 0) {
-    RequestSharedPtr request = std::make_shared<Request>(header_lines, body);
+    RequestSharedPtr request = std::make_shared<Request>(*this, header_lines, body);
     printf("Done reading request\n");
     return request;
   } else {
@@ -104,14 +106,21 @@ RequestSharedPtr Transaction::read_request() {
 void Transaction::process_request(RequestSharedPtr &request) {
   RouteSharedPtr route = server_.match_route(request->path, request->method);
 
-  ResponseSharedPtr response = std::make_shared<Response>(shared_from_this());
-  if (route) {
-    printf("MATCH: %s\n", request->path.c_str());
-    route->call(request, response);
-  } else {
-    printf("NO MATCH: %s\n", request->path.c_str());
+  response_ = std::make_shared<Response>(*this);
 
-    response->set_status_code(404);
+  // Hold onto the request object.
+  request_ = request;
+
+  if (route) {
+    printf("MATCH: %s\n", request_->path.c_str());
+
+    async_methods_ = std::make_shared<AsyncMethods>(*this);
+
+    route->call(request_, response_, async_methods_);
+  } else {
+    printf("NO MATCH: %s\n", request_->path.c_str());
+
+    response_->set_status_code(404);
 
     // response will fall out of scope and deallocate (send itself) immediately.
   }
@@ -135,6 +144,12 @@ void Transaction::send_response(Response &response) {
   socket_->write("Content-Length: " + std::to_string(output.size()) + "\r\n", ignored_error);
   socket_->write("\r\n", ignored_error);
   socket_->write(output, ignored_error);
+}
+
+void Transaction::notify_no_pending_ops() {
+  send_response(*response_);
+
+  server_.notify_transaction_finished(shared_from_this());
 }
 
 Transaction::~Transaction() {

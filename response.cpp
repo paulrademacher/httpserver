@@ -1,6 +1,7 @@
 #include "response.hpp"
+#include "transaction.hpp"
 
-Response::Response(TransactionSharedPtr transaction)
+Response::Response(Transaction &transaction)
     : status_code_(200), transaction_(transaction) {
   DEBUG_CTOR("Response");
 }
@@ -27,5 +28,4 @@ int Response::get_status_code() {
 
 Response::~Response() {
   DEBUG_DTOR("Response");
-  transaction_->send_response(*this);
 }

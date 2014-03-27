@@ -1,5 +1,5 @@
-#ifndef __HTTP_ROUTE_PTR_H__
-#define __HTTP_ROUTE_PTR_H__
+#ifndef __HTTP_ROUTE_PTR_HPP__
+#define __HTTP_ROUTE_PTR_HPP__
 
 #include "route.hpp"
 
@@ -16,4 +16,4 @@ private:
   RouteSharedPtr route_shared_ptr_;
 };
 
-#endif // __HTTP_ROUTE_PTR_H__
+#endif // __HTTP_ROUTE_PTR_HPP__

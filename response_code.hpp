@@ -1,5 +1,5 @@
-#ifndef __HTTP_RESPONSE_CODE_H__
-#define __HTTP_RESPONSE_CODE_H__
+#ifndef __HTTP_RESPONSE_CODE_HPP__
+#define __HTTP_RESPONSE_CODE_HPP__
 
 #include <map>
 #include <string>
@@ -18,4 +18,4 @@ private:
   std::map<int, std::string> response_html_;
 };
 
-#endif // __HTTP_RESPONSE_CODE_H__
+#endif // __HTTP_RESPONSE_CODE_HPP__

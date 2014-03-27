@@ -1,8 +1,10 @@
-#ifndef __HTTP_REQUEST_H__
-#define __HTTP_REQUEST_H__
+#ifndef __HTTP_REQUEST_HPP__
+#define __HTTP_REQUEST_HPP__
 
 #include <vector>
 #include <string>
+
+#include "common.hpp"
 
 class Request {
 public:
@@ -18,13 +20,15 @@ public:
   // Retrieves single query parameter.
   std::string operator[](const std::string &param);
 
-  Request(std::vector<std::string>& header_lines, std::string body);
+  Request(Transaction &transaction,
+      std::vector<std::string>& header_lines, std::string body);
   ~Request();
 
 private:
+  Transaction &transaction_;  // Owner.
   void parseParameterString(std::string parameter_string);
 };
 
 typedef std::shared_ptr<Request> RequestSharedPtr;
 
-#endif // __HTTP_REQUEST_H__
+#endif // __HTTP_REQUEST_HPP__

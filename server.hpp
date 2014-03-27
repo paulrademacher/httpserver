@@ -1,10 +1,8 @@
-#ifndef __HTTP_SERVER_H__
-#define __HTTP_SERVER_H__
+#ifndef __HTTP_SERVER_HPP__
+#define __HTTP_SERVER_HPP__
 
 #include <string>
-#include <set>
-
-#include <boost/asio/steady_timer.hpp>
+#include <unordered_set>
 
 #include "common.hpp"
 #include "response_code.hpp"
@@ -12,10 +10,7 @@
 #include "route_ptr.hpp"
 #include "transaction.hpp"
 
-typedef std::function<void()> TimeoutHandler;
-typedef std::shared_ptr<boost::asio::steady_timer> SteadyTimerSharedPtr;
-
-class Server {
+class Server : public std::enable_shared_from_this<Server> {
 public:
   explicit Server(std::string host, int port);
 
@@ -30,7 +25,7 @@ public:
 
   ResponseCode response_code_;
 
-  void async_wait(TimeoutHandler handler, unsigned int timeout_ms);
+  boost::asio::io_service &get_io_service() { return *io_service_; }
 
 private:
   void async_accept();
@@ -38,13 +33,13 @@ private:
   std::string host_;
   int port_;
 
-  std::set<SteadyTimerSharedPtr> steady_timers_;
   std::unique_ptr<boost::asio::io_service> io_service_;
   std::unique_ptr<boost::asio::ip::tcp::acceptor> acceptor_;
-
-  std::set<TransactionSharedPtr> transactions_;
-
+  std::unordered_set<TransactionSharedPtr> transactions_;
   std::vector<RouteSharedPtr> routes_;
+
+  friend Transaction;
+  void notify_transaction_finished(TransactionSharedPtr transaction_);
 };
 
-#endif // __HTTP_SERVER_H__
+#endif // __HTTP_SERVER_HPP__

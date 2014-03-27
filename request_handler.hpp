@@ -1,14 +1,12 @@
-#ifndef __HTTP_REQUEST_HANDLER_H__
-#define __HTTP_REQUEST_HANDLER_H__
+#ifndef __HTTP_REQUEST_HANDLER_HPP__
+#define __HTTP_REQUEST_HANDLER_HPP__
 
+#include "async_methods.hpp"
 #include "common.hpp"
 #include "request.hpp"
 #include "response.hpp"
 
-class RequestHandler {
-public:
-};
+typedef void (*RequestHandlerFunction)(RequestSharedPtr request,
+    ResponseSharedPtr response, AsyncMethodsSharedPtr async_methods);
 
-typedef void (*RequestHandlerFunction)(RequestSharedPtr request, ResponseSharedPtr response);
-
-#endif // __HTTP_REQUEST_HANDLER_H__
+#endif // __HTTP_REQUEST_HANDLER_HPP__
