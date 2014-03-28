@@ -23,14 +23,12 @@ void Transaction::start() {
 
       // TODO: Does error matter here?
 
-      RequestSharedPtr request = read_request();
-      if (request) {
-        process_request(request);
-      }
+      read_request();
+      process_request();
     });
 }
 
-RequestSharedPtr Transaction::read_request() {
+void Transaction::read_request() {
   std::string method;
   std::string uri;
   std::string http_version;
@@ -90,11 +88,8 @@ RequestSharedPtr Transaction::read_request() {
   }
 
   if (header_lines.size() > 0) {
-    RequestSharedPtr request = std::make_shared<Request>(*this, header_lines, body);
+    request_ = std::make_shared<Request>(*this, header_lines, body);
     printf("Done reading request\n");
-    return request;
-  } else {
-    return nullptr;
   }
 
     //    if (error == boost::asio::error::eof) {
@@ -103,13 +98,10 @@ RequestSharedPtr Transaction::read_request() {
 
 }
 
-void Transaction::process_request(RequestSharedPtr &request) {
-  RouteSharedPtr route = server_.match_route(request->path, request->method);
-
+void Transaction::process_request() {
   response_ = std::make_shared<Response>(*this);
 
-  // Hold onto the request object.
-  request_ = request;
+  RouteSharedPtr route = server_.match_route(request_->path, request_->method);
 
   if (route) {
     printf("MATCH: %s\n", request_->path.c_str());
@@ -126,17 +118,17 @@ void Transaction::process_request(RequestSharedPtr &request) {
   }
 }
 
-void Transaction::send_response(Response &response) {
-  std::string output = response.get();
+void Transaction::send_response() {
+  std::string output = response_->get_output();
 
   if (!output.length()) {
     // Use default response HTML if nothing was set.
-    output = server_.response_code_.get_response_html(response.get_status_code());
+    output = server_.response_code_.get_response_html(response_->get_status_code());
   }
 
-  std::cout << "ST: " << response.get_status_code() << std::endl;
+  std::cout << "ST: " << response_->get_status_code() << std::endl;
 
-  std::string& status_string = server_.response_code_.get_status_string(response.get_status_code());
+  std::string& status_string = server_.response_code_.get_status_string(response_->get_status_code());
 
   boost::system::error_code ignored_error;
   socket_->write("HTTP/1.1 " + status_string + "\r\n", ignored_error);
@@ -147,7 +139,7 @@ void Transaction::send_response(Response &response) {
 }
 
 void Transaction::notify_no_pending_ops() {
-  send_response(*response_);
+  send_response();
 
   server_.notify_transaction_finished(shared_from_this());
 }

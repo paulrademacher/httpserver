@@ -32,9 +32,9 @@ private:
 
   boost::asio::io_service &io_service_;
 
-  RequestSharedPtr read_request();
-  void process_request(RequestSharedPtr &request);
-  void send_response(Response &response);
+  void read_request();
+  void process_request();
+  void send_response();
 
   void notify_no_pending_ops();  // Message from AsyncMethods.
 

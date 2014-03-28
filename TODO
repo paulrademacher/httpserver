@@ -13,8 +13,8 @@ deletion of socket
 
 RoutePtr has a RouteSharedPtr, but does not follow same pattern of ownership as Transaction, etc
 
-RElease transaction from transactions_ !!
-
 Opportunity for pattern instead of op_started() / op_ended()
 
 Opportunity for pattern around main.cpp's usage of async_wait, which is a clunky closure
+
+Transactions could be a unique_ptr with explicit mem mgmt

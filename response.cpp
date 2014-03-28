@@ -14,7 +14,7 @@ void Response::write(std::string str) {
   stream_ << str;
 }
 
-std::string Response::get() {
+std::string Response::get_output() {
   return stream_.str();
 }
 

@@ -20,7 +20,7 @@ public:
     return *this;
   }
 
-  std::string get();
+  std::string get_output();
 
   void set_status_code(int status_code);
 

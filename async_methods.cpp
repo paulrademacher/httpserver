@@ -21,7 +21,6 @@ void AsyncMethods::async_wait(TimeoutHandler handler, unsigned int timeout_ms) {
   timer->async_wait([=] (const boost::system::error_code& error) {
       std::cout << "handler: " << error.message() << std::endl;
       if (!error) {
-        printf("Calling handler\n");
         // Timer expired.
         handler();
       }

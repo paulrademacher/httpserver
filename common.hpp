@@ -5,7 +5,7 @@
 
 using boost::asio::ip::tcp;
 
-#define DEBUG_LIFECYCLE
+//#define DEBUG_LIFECYCLE
 
 #ifdef DEBUG_LIFECYCLE
 #define DEBUG_CTOR(name) { printf("> %s CTOR: %p\n", name, this); }
