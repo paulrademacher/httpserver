@@ -18,3 +18,5 @@ Opportunity for pattern instead of op_started() / op_ended()
 Opportunity for pattern around main.cpp's usage of async_wait, which is a clunky closure
 
 Transactions could be a unique_ptr with explicit mem mgmt
+
+#pragma once

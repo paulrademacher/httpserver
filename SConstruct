@@ -10,6 +10,7 @@ env = Environment(
 env.Program(
     target="main",
     source=["main.cpp",
+            "async_http_client.cpp",
             "async_methods.cpp",
             "encoding.cpp",
             "request.cpp",
