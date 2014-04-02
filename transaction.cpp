@@ -29,9 +29,6 @@ void Transaction::start() {
 }
 
 void Transaction::read_request() {
-  std::string method;
-  std::string uri;
-  std::string http_version;
   std::vector<std::string> header_lines;
   boost::system::error_code error;
 
@@ -108,7 +105,14 @@ void Transaction::process_request() {
 
     async_methods_ = std::make_shared<AsyncMethods>(*this);
 
+    // Bracket the handler call with begin_op/end_op, which bracket each async call, but
+    // here ensure that the same code path is followed [end_op()] even when no async calls
+    // are triggered in the request handler.
+    async_methods_->begin_op();
+
     route->call(request_, response_, async_methods_);
+
+    async_methods_->end_op();
   } else {
     printf("NO MATCH: %s\n", request_->path.c_str());
 

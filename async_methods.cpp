@@ -16,7 +16,7 @@ void AsyncMethods::async_wait(TimeoutHandler handler, unsigned int timeout_ms) {
   // Hold on to timer so it doesn't go out of scope and cancel itself.
   steady_timers_.insert(timer);
 
-  op_started();
+  begin_op();
 
   timer->async_wait([=] (const boost::system::error_code& error) {
       std::cout << "handler: " << error.message() << std::endl;
@@ -25,11 +25,11 @@ void AsyncMethods::async_wait(TimeoutHandler handler, unsigned int timeout_ms) {
         handler();
       }
       steady_timers_.erase(timer);
-      op_ended();
+      end_op();
     });
 }
 
-void AsyncMethods::op_started() {
+void AsyncMethods::begin_op() {
   // TODO: Not thread safe.
   pending_ops_++;
 }
@@ -39,7 +39,7 @@ void AsyncMethods::op_started() {
  * are any remaining async operations, and if not, notifies the transaction that
  * we are finished.
  */
-void AsyncMethods::op_ended() {
+void AsyncMethods::end_op() {
   // TODO: Not thread safe.
   pending_ops_--;
 

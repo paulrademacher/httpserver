@@ -18,8 +18,8 @@ void do_index(RequestSharedPtr request, ResponseSharedPtr response,
       async_methods->async_wait([=]() mutable {
           *response << "<br>DONE</html>\n";
           *response << "</html>\n";
-        }, 2000);
-      }, 2000);
+        }, 0);
+      }, 0);
 }
 
 void do_index_post(RequestSharedPtr request, ResponseSharedPtr response,
