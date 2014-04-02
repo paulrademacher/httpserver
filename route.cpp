@@ -18,7 +18,7 @@ bool Route::matches(std::string &uri, MethodEnum method) {
   return false;
 }
 
-bool Route::call(RequestSharedPtr request, ResponseSharedPtr response, AsyncMethodsSharedPtr async_methods) {
+bool Route::call(Request &request, Response &response, AsyncMethods &async_methods) {
   if (func_) {
     func_(request, response, async_methods);
     return true;

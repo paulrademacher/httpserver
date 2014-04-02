@@ -19,7 +19,7 @@ public:
   ~Route();
 
   bool matches(std::string &uri, MethodEnum method);
-  bool call(RequestSharedPtr request, ResponseSharedPtr response, AsyncMethodsSharedPtr async_methods);
+  bool call(Request &request, Response &response, AsyncMethods &async_methods);
 
   // TODO: Clean up SharedPtr& vs by-val.
 private:

@@ -27,6 +27,9 @@ private:
 
   int pending_ops_ = 0;
 
+  // Prevent copy.
+  AsyncMethods(const AsyncMethods &copy) = delete;
+
   std::set<SteadyTimerSharedPtr> steady_timers_;
 };
 

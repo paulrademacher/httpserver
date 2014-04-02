@@ -30,6 +30,9 @@ private:
 
   std::stringstream stream_;
   int status_code_;
+
+  // Prevent copy.
+  Response(const Response &copy) = delete;
 };
 
 typedef std::shared_ptr<Response> ResponseSharedPtr;

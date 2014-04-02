@@ -110,7 +110,7 @@ void Transaction::process_request() {
     // are triggered in the request handler.
     async_methods_->begin_op();
 
-    route->call(request_, response_, async_methods_);
+    route->call(*request_, *response_, *async_methods_);
 
     async_methods_->end_op();
   } else {

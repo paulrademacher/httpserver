@@ -6,7 +6,7 @@
 #include "request.hpp"
 #include "response.hpp"
 
-typedef void (*RequestHandlerFunction)(RequestSharedPtr request,
-    ResponseSharedPtr response, AsyncMethodsSharedPtr async_methods);
+typedef void (*RequestHandlerFunction)(Request &request,
+    Response &response, AsyncMethods &async_methods);
 
 #endif // __HTTP_REQUEST_HANDLER_HPP__

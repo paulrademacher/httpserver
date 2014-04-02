@@ -27,6 +27,9 @@ public:
 private:
   Transaction &transaction_;  // Owner.
   void parseParameterString(std::string parameter_string);
+
+  // Prevent copy.
+  Request(const Request &copy) = delete;
 };
 
 typedef std::shared_ptr<Request> RequestSharedPtr;

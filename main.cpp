@@ -4,38 +4,35 @@
 
 #include "server.hpp"
 
-void do_index(RequestSharedPtr request, ResponseSharedPtr response,
-    AsyncMethodsSharedPtr async_methods) {
-  std::string p2 = (*request)["p2"];
+void do_index(Request& request, Response& response, AsyncMethods& async_methods) {
+  std::string p2 = request["p2"];
 
-  async_methods->async_wait([=]() mutable {
-      *response << "<html>\n";
-      *response << "<b>HI!</b>\n";
-      *response << "<hr>POST:<form method=post><input type=text name=p1 value=1 /><input type=text name=p1 value=1 /><input type=text name=p2 value=2 /><input type=submit></form>\n";
-      *response << "P2= " << p2 << "<br>";
-      *response << "<hr>GET:<form method=get><input type=text name=p1 value=1 /><input type=text name=p1 value=1 /><input type=text name=p2 value=2 /><input type=submit></form>\n";
+  async_methods.async_wait([&]() mutable {
+      response << "<html>\n";
+      response << "<b>HI!</b>\n";
+      response << "<hr>POST:<form method=post><input type=text name=p1 value=1 /><input type=text name=p1 value=1 /><input type=text name=p2 value=2 /><input type=submit></form>\n";
+      response << "P2= " << p2 << "<br>";
+      response << "<hr>GET:<form method=get><input type=text name=p1 value=1 /><input type=text name=p1 value=1 /><input type=text name=p2 value=2 /><input type=submit></form>\n";
 
-      async_methods->async_wait([=]() mutable {
-          *response << "<br>DONE</html>\n";
-          *response << "</html>\n";
-        }, 0);
-      }, 0);
+      async_methods.async_wait([&]() mutable {
+          response << "<br>DONE</html>\n";
+          response << "</html>\n";
+        }, 1000);
+      }, 1000);
 }
 
-void do_index_post(RequestSharedPtr request, ResponseSharedPtr response,
-    AsyncMethodsSharedPtr async_methods) {
-  *response << "<html>\n";
-  *response << "<b>DA POST</b>\n";
-  *response << "<form method=post><input type=submit></form>\n";
-  *response << "</html>\n";
+void do_index_post(Request &request, Response &response, AsyncMethods &async_methods) {
+  response << "<html>\n";
+  response << "<b>DA POST</b>\n";
+  response << "<form method=post><input type=submit></form>\n";
+  response << "</html>\n";
 }
 
 
-void do_foo(RequestSharedPtr request, ResponseSharedPtr response,
-    AsyncMethodsSharedPtr async_methods) {
-  *response << "<html>\n";
-  *response << "FOOOOOO!\n";
-  *response << "</html>\n";
+void do_foo(Request &request, Response &response, AsyncMethods &async_methods) {
+  response << "<html>\n";
+  response << "FOOOOOO!\n";
+  response << "</html>\n";
 }
 
 int main(int argc, char *argv[]) {
