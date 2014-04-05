@@ -22,6 +22,9 @@ public:
   bool call(Request &request, Response &response, AsyncMethods &async_methods);
 
   // TODO: Clean up SharedPtr& vs by-val.
+
+  Route(const Route&) = delete;
+  Route& operator=(const Route&) = delete;
 private:
   boost::regex regex_;
   MethodEnum method_;

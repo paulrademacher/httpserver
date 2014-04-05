@@ -25,14 +25,14 @@ public:
   void set_status_code(int status_code);
 
   int get_status_code();
+
+  Response(const Response&) = delete;
+  Response& operator=(const Response&) = delete;
 private:
   Transaction &transaction_;  // Owner.
 
   std::stringstream stream_;
   int status_code_;
-
-  // Prevent copy.
-  Response(const Response &copy) = delete;
 };
 
 typedef std::shared_ptr<Response> ResponseSharedPtr;

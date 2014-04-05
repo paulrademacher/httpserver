@@ -24,12 +24,12 @@ public:
       std::vector<std::string>& header_lines, std::string body);
   ~Request();
 
+  Request(const Request&) = delete;
+  Request& operator=(const Request&) = delete;
+
 private:
   Transaction &transaction_;  // Owner.
   void parseParameterString(std::string parameter_string);
-
-  // Prevent copy.
-  Request(const Request &copy) = delete;
 };
 
 typedef std::shared_ptr<Request> RequestSharedPtr;

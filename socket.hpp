@@ -23,6 +23,9 @@ public:
 
   tcp::socket& get_raw_socket();
 
+  Socket(const Socket&) = delete;
+  Socket& operator=(const Socket&) = delete;
+
 private:
   std::unique_ptr<tcp::socket> socket_;
 };

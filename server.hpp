@@ -27,6 +27,9 @@ public:
 
   boost::asio::io_service &get_io_service() { return *io_service_; }
 
+  Server(const Server&) = delete;
+  Server& operator=(const Server&) = delete;
+
 private:
   void async_accept();
 

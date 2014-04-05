@@ -21,6 +21,10 @@ public:
   ~Transaction();
 
   void start();
+
+  Transaction(const Transaction&) = delete;
+  Transaction& operator=(const Transaction&) = delete;
+
 private:
   SocketSharedPtr socket_;  // Ownership transfered here.
   Server &server_;  // Owner.

@@ -16,6 +16,9 @@ public:
 
   bool connect();
 
+  AsyncHttpClient(const AsyncHttpClient&) = delete;
+  AsyncHttpClient& operator=(const AsyncHttpClient&) = delete;
+
 private:
   std::shared_ptr<boost::asio::io_service> io_service_;
   std::string uri_;

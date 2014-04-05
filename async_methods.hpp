@@ -22,13 +22,13 @@ public:
   void begin_op();
   void end_op();
 
+  AsyncMethods(const AsyncMethods&) = delete;
+  AsyncMethods& operator=(const AsyncMethods&) = delete;
+
 private:
   Transaction &transaction_;  // Owner.
 
   int pending_ops_ = 0;
-
-  // Prevent copy.
-  AsyncMethods(const AsyncMethods &copy) = delete;
 
   std::set<SteadyTimerSharedPtr> steady_timers_;
 };
