@@ -8,10 +8,10 @@
 class AsyncHttpClient {
 public:
   AsyncHttpClient(std::shared_ptr<boost::asio::io_service> io_service,
-    const std::string &uri,
-    const std::string &method="GET",
-    const std::vector<std::string> &headers=std::vector<std::string>(),
-    const std::string &body="");
+      const std::string &uri,
+      const std::string &method="GET",
+      const std::vector<std::string> &headers=std::vector<std::string>(),
+      const std::string &body="");
   ~AsyncHttpClient();
 
   bool connect();

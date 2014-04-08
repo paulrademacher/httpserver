@@ -16,7 +16,7 @@ class Server;
 class Transaction : public std::enable_shared_from_this<Transaction> {
 public:
   explicit Transaction(Server &server, SocketSharedPtr socket,
-                       boost::asio::io_service &io_service);
+      boost::asio::io_service &io_service);
 
   ~Transaction();
 

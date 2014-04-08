@@ -7,7 +7,7 @@
 
 Transaction::Transaction(Server &server, SocketSharedPtr socket,
     boost::asio::io_service &io_service)
-  : server_(server), socket_(socket), io_service_(io_service) {
+    : server_(server), socket_(socket), io_service_(io_service) {
 
   DEBUG_CTOR("Transaction");
 }

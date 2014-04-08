@@ -8,5 +8,6 @@ StrVectorSharedPtr split_string(const std::string &string, char delim) {
   while (std::getline(stream, item, delim)) {
     items->push_back(item);
   }
+
   return items;
 }

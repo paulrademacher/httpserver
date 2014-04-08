@@ -15,7 +15,7 @@ class RoutePtr;
 class Route {
 public:
   explicit Route(Server &server, std::string regex_string, RequestHandlerFunction func,
-    MethodEnum method=METHOD_ANY);
+      MethodEnum method=METHOD_ANY);
   ~Route();
 
   bool matches(std::string &uri, MethodEnum method);
