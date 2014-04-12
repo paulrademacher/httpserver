@@ -4,6 +4,8 @@
 
 #include "server.hpp"
 
+#include "async_http_client.hpp"
+
 void do_index(Request& request, Response& response, AsyncMethods& async_methods) {
   std::string p2 = request["p2"];
 
@@ -48,6 +50,15 @@ int main(int argc, char *argv[]) {
   }
 
   Server server(hostname, port);
+
+  http_client::AsyncHttpClient(server.get_io_service(), "http://www.cnn.com", "GET");
+  http_client::AsyncHttpClient(server.get_io_service(), "http://www.cnn.com/", "GET");
+  http_client::AsyncHttpClient(server.get_io_service(), "http://www.cnn.com:8081/", "GET");
+  http_client::AsyncHttpClient(server.get_io_service(), "https://www.cnn.com:8081/", "GET");
+  http_client::AsyncHttpClient(server.get_io_service(), "https://www.cnn.com/", "GET");
+  http_client::AsyncHttpClient(server.get_io_service(), "http://localhost:8080", "GET");
+  http_client::AsyncHttpClient(server.get_io_service(), "https://www.katmandu.com:9090/asdij/asd", "GET");
+  http_client::AsyncHttpClient(server.get_io_service(), "/foo", "GET");
 
   server.route("/", METHOD_GET) >> do_index;
   server.route("/", METHOD_POST) >> do_index_post;

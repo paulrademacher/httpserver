@@ -20,3 +20,13 @@ Opportunity for pattern around main.cpp's usage of async_wait, which is a clunky
 Transactions could be a unique_ptr with explicit mem mgmt
 
 #pragma once
+
+http_client::AsyncHttpClient is ugly and redundant
+
+Move URL parsing in asynchttpclient to its own Url.cpp class
+
+Unit tests for Url class
+  https://code.google.com/p/googletest/wiki/Primer
+  http://stackoverflow.com/questions/91384/unit-testing-for-c-code-tools-and-methodology#92569
+  https://github.com/murrekatt/cpput/blob/master/examples/Test_Example.cpp
+  https://www.google.com/search?q=lightweight+c%2B%2B+unit+test+framework

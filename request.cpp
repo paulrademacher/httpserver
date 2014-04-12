@@ -47,10 +47,10 @@ Request::Request(Transaction &transaction,
 
 void Request::parseParameterString(std::string parameter_string) {
   if (parameter_string.size()) {
-    StrVectorSharedPtr pairs = split_string(parameter_string, '&');
+    utils::StrVectorSharedPtr pairs = utils::split_string(parameter_string, '&');
 
     for (auto entry : *pairs) {
-      StrVectorSharedPtr pair = split_string(entry, '=');
+      utils::StrVectorSharedPtr pair = utils::split_string(entry, '=');
       if (pair->size() == 2) {
         auto &key = (*pair)[0];
         auto &encoded_value = (*pair)[1];
