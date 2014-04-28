@@ -1,5 +1,7 @@
 #include <boost/algorithm/string.hpp>
 
+#include "async/async.hpp"
+
 #include "async_http_client.hpp"
 
 #include "utils.hpp"
@@ -163,7 +165,7 @@ void AsyncHttpClient::fetch(std::function<std::string()> callback) {
 
                                         // Write whatever content we already have to output.
                                         if (response_.size() > 0) {
-                                          std::cout << &response_;
+                                          content_ << &response_;
 
                                           // Start reading remaining data until EOF.
                                           boost::asio::async_read(socket_, response_,
@@ -187,7 +189,7 @@ void AsyncHttpClient::read_content(const boost::system::error_code& err,
     const std::size_t bytes_transferred) {
   if (!err) {
     // Write all of the data that has been read so far.
-    std::cout << &response_;
+    content_ << &response_;
 
     // Continue reading remaining data until EOF.
     boost::asio::async_read(socket_, response_,
@@ -195,6 +197,9 @@ void AsyncHttpClient::read_content(const boost::system::error_code& err,
         [this](const boost::system::error_code& err, const std::size_t bytes_transferred) {
           read_content(err, bytes_transferred);
         });
+  } else {
+    printf("DONE\n");
+    //    std::cout << content_.str() << std::endl;
   }
 }
 

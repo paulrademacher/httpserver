@@ -3,6 +3,7 @@
 // Based on boost_lib/boost_1_55_0/doc/html/boost_asio/example/cpp03/http/client/async_client.cpp
 //     by Christopher M. Kohlhoff (chris at kohlhoff dot com)
 
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -41,6 +42,7 @@ private:
   std::vector<std::string> headers_;
   std::string body_;
   std::string server_;
+  std::stringstream content_;
   int port_;
   std::string path_;
 
