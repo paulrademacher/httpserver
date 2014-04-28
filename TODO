@@ -35,3 +35,5 @@ List of C++ libs:
 http://en.cppreference.com/w/cpp/links/libs
 
 Figure out proper recursive lambda, for AsyncHttpClient::read_content()
+
+Return an int from async_wait
