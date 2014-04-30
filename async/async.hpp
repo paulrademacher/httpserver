@@ -3,8 +3,6 @@
 #ifndef __ASYNC_ASYNC_HPP__
 #define __ASYNC_ASYNC_HPP__
 
-#include <boost/asio.hpp>
-
 #include <functional>
 #include <vector>
 
@@ -30,12 +28,8 @@ using Task = std::function<void(SeriesCallback<T>)>;
 template<typename T>
 using TaskVector = std::vector<Task<T>>;
 
-
-void *global_callback;
-
 template<typename T>
-void series(boost::asio::io_service *io_service,
-    std::vector<Task<T>> tasks,
+void series(std::vector<Task<T>> tasks,
     std::function<void(ErrorCode, VectorSharedPtr<T>)> final_callback=nullptr) {
 
   auto results = std::make_shared<std::vector<T>>();
@@ -52,7 +46,7 @@ void series(boost::asio::io_service *io_service,
   using Iterator = typename TaskVector<T>::iterator;
 
   Iterator task_iter = tasks.begin();
-  SeriesCallback<T> callback = [&tasks, &task_iter, final_callback, results, &callback](ErrorCode error, T result) mutable {
+  SeriesCallback<T> callback = [tasks, task_iter, final_callback, results, &callback](ErrorCode error, T result) mutable {
     results->push_back(result);
     if (error == OK) {
       ++task_iter;
