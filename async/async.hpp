@@ -29,8 +29,13 @@ template<typename T>
 using TaskVector = std::vector<Task<T>>;
 
 template<typename T>
-void series(std::vector<Task<T>> tasks,
-    std::function<void(ErrorCode, VectorSharedPtr<T>)> final_callback=nullptr) {
+void noop_series_final_callback(ErrorCode e, VectorSharedPtr<T> p) {};
+
+// `tasks` and `final_callback` are passed by reference.  It is the responsibility of the
+// caller to ensure that their lifetime exceeds the lifetime of the series call.
+template<typename T>
+void series(std::vector<Task<T>> &tasks,
+    const std::function<void(ErrorCode, VectorSharedPtr<T>)> &final_callback=noop_series_final_callback<T>) {
 
   auto results = std::make_shared<std::vector<T>>();
 
@@ -46,25 +51,26 @@ void series(std::vector<Task<T>> tasks,
   using Iterator = typename TaskVector<T>::iterator;
 
   Iterator task_iter = tasks.begin();
-  SeriesCallback<T> callback = [tasks, task_iter, final_callback, results, &callback](ErrorCode error, T result) mutable {
+  SeriesCallback<T> callback = [&tasks, task_iter, &final_callback, results, &callback](ErrorCode error, T result) mutable {
+    printf("err=%d   iter: %x %x\n", error, task_iter, tasks.end());
     results->push_back(result);
     if (error == OK) {
       ++task_iter;
+      printf("err=%d       : %x %x\n", error, task_iter, tasks.end());
       if (task_iter == tasks.end()) {
-        if (final_callback) {
-          final_callback(error, results);
-        }
+        printf("LAST\n");
+        final_callback(error, results);
       } else {
-        //        (*task_iter)(callback);
+        printf("2\n");
+        (*task_iter)(callback);
       }
     } else {
-      if (final_callback) {
-        final_callback(error, results);
-      }
+      printf("3\n");
+      final_callback(error, results);
     }
   };
 
-  //  (*task_iter)(callback);
+  (*task_iter)(callback);
 }
 
 }
