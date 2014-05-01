@@ -39,7 +39,7 @@ void TEST(async::SeriesCallback<int> callback) {
 // `tasks` and `final_callback` are passed by reference.  It is the responsibility of the
 // caller to ensure that their lifetime exceeds the lifetime of the series call.
 template<typename T>
-void series(std::vector<Task<T>> &tasks,
+void series_with_callstack(std::vector<Task<T>> &tasks,
     const std::function<void(ErrorCode, VectorSharedPtr<T>)> &final_callback=noop_series_final_callback<T>) {
 
   auto results = std::make_shared<std::vector<T>>();
@@ -77,6 +77,50 @@ void series(std::vector<Task<T>> &tasks,
   (*task_iter)(callback);
 }
 
+
+// `tasks` and `final_callback` are passed by reference.  It is the responsibility of the
+// caller to ensure that their lifetime exceeds the lifetime of the series call.
+template<typename T>
+void series(std::vector<Task<T>> &tasks,
+    const std::function<void(ErrorCode, VectorSharedPtr<T>)> &final_callback=noop_series_final_callback<T>) {
+
+  auto results = std::make_shared<std::vector<T>>();
+
+  // If task list is empty, invoke the final callback immediately with a success code and
+  // an empty results list.
+  if (tasks.size() == 0) {
+    final_callback(OK, results);
+    return;
+  }
+
+  using Iterator = typename TaskVector<T>::iterator;
+  auto iter = std::make_shared<Iterator>(tasks.begin());
+  auto inside_task = std::make_shared<bool>(false);
+  auto last_error = std::make_shared<ErrorCode>(OK);
+
+  SeriesCallback<T> callback = [results, inside_task, last_error, invoke_next_task](ErrorCode error, T result) mutable {
+    results->push_back(result);
+    *last_error = error;
+    if (!inside_task) {
+      invoke_next_task();
+    }
+  };
+  auto invoke_next_task = [iter]() {
+    ++(*iter);
+    invoke_current_task();
+  };
+  auto invoke_current_task = [inside_task, iter, callback]() mutable {
+    *inside_task = true;
+    auto task = **iter;
+    task(callback);
+    *inside_task = false;
+  };
+
+  while (*iter != tasks.end()) {
+    invoke_current_task();
+    ++(*iter);
+  }
+}
 
 }
 
