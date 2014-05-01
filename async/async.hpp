@@ -23,13 +23,18 @@ template<typename T>
 using SeriesCompletionCallback = std::function<void(ErrorCode, VectorSharedPtr<T>)>;
 
 template <typename T>
-using Task = std::function<void(SeriesCallback<T>)>;
+using Task = std::function<void(SeriesCallback<T>&)>;
 
 template<typename T>
 using TaskVector = std::vector<Task<T>>;
 
 template<typename T>
 void noop_series_final_callback(ErrorCode e, VectorSharedPtr<T> p) {};
+
+void TEST(async::SeriesCallback<int> callback) {
+  printf("TEST\n");
+  callback(async::OK, 11);
+}
 
 // `tasks` and `final_callback` are passed by reference.  It is the responsibility of the
 // caller to ensure that their lifetime exceeds the lifetime of the series call.
@@ -52,26 +57,26 @@ void series(std::vector<Task<T>> &tasks,
 
   Iterator task_iter = tasks.begin();
   SeriesCallback<T> callback = [&tasks, task_iter, &final_callback, results, &callback](ErrorCode error, T result) mutable {
-    printf("err=%d   iter: %x %x\n", error, task_iter, tasks.end());
+    printf("err=%d   iter: %x %x   - &iter=%x  &cb=%x\n", error, task_iter, tasks.end(), &task_iter, &callback);
     results->push_back(result);
     if (error == OK) {
       ++task_iter;
-      printf("err=%d       : %x %x\n", error, task_iter, tasks.end());
       if (task_iter == tasks.end()) {
-        printf("LAST\n");
         final_callback(error, results);
       } else {
-        printf("2\n");
+        // `callback` is being passed by reference.  If it were by value, then we'd be
+        // creating a copy of callback and all the captured variables, and task_iter would
+        // be effectively reset.
         (*task_iter)(callback);
       }
     } else {
-      printf("3\n");
       final_callback(error, results);
     }
   };
 
   (*task_iter)(callback);
 }
+
 
 }
 
