@@ -40,10 +40,10 @@ void task5(async::SeriesCallback<int> &callback) {
   callback(async::OK, 55);
 }
 
-void completion(async::ErrorCode error, async::VectorSharedPtr<int> results) {
+void completion(async::ErrorCode error, std::vector<int> &results) {
   printf("--------------------\n");
-  printf("size: %lu\n", results->size());
-  for (int x : *results) {
+  printf("size: %lu\n", results.size());
+  for (int x : results) {
     printf("%d\n", x);
   }
 }

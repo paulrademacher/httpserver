@@ -23,19 +23,16 @@ public:
 };
 
 template<typename T>
-using VectorSharedPtr = std::shared_ptr<std::vector<T>>;
-
-template<typename T>
 using SeriesCallback = std::function<void(ErrorCode error, T result)>;
 
 template<typename T>
 void noop_series_callback(ErrorCode e, T result) {};
 
 template<typename T>
-using SeriesCompletionCallback = std::function<void(ErrorCode, VectorSharedPtr<T>)>;
+using SeriesCompletionCallback = std::function<void(ErrorCode, std::vector<T>)>;
 
 template<typename T>
-void noop_series_final_callback(ErrorCode e, VectorSharedPtr<T> p) {};
+void noop_series_final_callback(ErrorCode e, std::vector<T> p) {};
 
 template <typename T>
 using Task = std::function<void(SeriesCallback<T>&)>;
@@ -52,7 +49,7 @@ void TEST(async::SeriesCallback<int> callback) {
 // caller to ensure that their lifetime exceeds the lifetime of the series call.
 template<typename T>
 void series_with_callstack(std::vector<Task<T>> &tasks,
-    const std::function<void(ErrorCode, VectorSharedPtr<T>)> &final_callback=noop_series_final_callback<T>) {
+    const std::function<void(ErrorCode, std::vector<T>&)> &final_callback=noop_series_final_callback<T>) {
 
   auto results = std::make_shared<std::vector<T>>();
 
@@ -94,71 +91,93 @@ void series_with_callstack(std::vector<Task<T>> &tasks,
 // caller to ensure that their lifetime exceeds the lifetime of the series call.
 template<typename T>
 void series(std::vector<Task<T>> &tasks,
-    const std::function<void(ErrorCode, VectorSharedPtr<T>)> &final_callback=noop_series_final_callback<T>) {
-
-  auto results = std::make_shared<std::vector<T>>();
-
-  // If task list is empty, invoke the final callback immediately with a success code and
-  // an empty results list.
-  if (tasks.size() == 0) {
-    final_callback(OK, results);
-    return;
-  }
-
-  auto state = std::make_shared<SeriesState>();
-
-  using Iterator = typename TaskVector<T>::iterator;
-  auto iter = std::make_shared<Iterator>(tasks.begin());
-  auto is_inside_task = std::make_shared<bool>(false);
-  auto callback_called = std::make_shared<bool>(false);
-  auto last_error = std::make_shared<ErrorCode>(OK);
+    const std::function<void(ErrorCode, std::vector<T>&)> &final_callback=noop_series_final_callback<T>) {
 
   struct SeriesState {
     SeriesCallback<T> callback;
     std::function<void()> invoke_until_async;
+    typename TaskVector<T>::iterator iter;
     bool is_inside_task;
     bool callback_called;
+    bool is_finished = false;
     ErrorCode last_error = OK;
+    std::vector<T> results;
+    std::vector<Task<T>> *tasks;
+
+    SeriesState() { printf("> SeriesState\n"); }
+    ~SeriesState() { printf("< SeriesState\n"); }
+
+    //    SeriesState(std::vector<Task<T>> *tasks_in) : tasks(tasks_in) {};
   };
+
+  auto state = std::make_shared<SeriesState>();
+  state->tasks = &tasks;
+  state->iter = tasks.begin();
+
+  // If task list is empty, invoke the final callback immediately with a success code and
+  // an empty results list.
+  if (state->tasks->size() == 0) {
+    final_callback(OK, state->results);
+    return;
+  }
 
   // Capture tasks by reference to not copy the vector.  `iter` is bound to the original
   // vector.
-  state.callback = [callback_called, results, is_inside_task, iter, last_error, &tasks](ErrorCode error, T result) mutable {
-    DebugScope d("callback");
-    printf("In callback.  is_inside_task=%d\n", *is_inside_task);
-    *callback_called = true;
-    results->push_back(result);
-    *last_error = error;
+  state->callback = [state](ErrorCode error, T result) mutable {
+    if (state->is_finished) {
+      printf("ERROR ********************\n");  // REMOVE ME
+    }
 
-    if (!*is_inside_task) {
-      while (*iter != tasks.end()) {
-        auto task = **iter;
-        std::function<void(ErrorCode, int)> cb = [](ErrorCode e, int v) {};
-        task(cb);
-        ++(*iter);
+    DebugScope d("callback");
+    printf("In callback.  is_inside_task=%d\n", state->is_inside_task);
+    state->callback_called = true;
+    state->results.push_back(result);
+    state->last_error = error;
+
+    if (!state->is_inside_task) {
+      state->invoke_until_async();
+
+      if (state->is_finished) {
+        printf("cb state count: %d\n", state.use_count());
+        state.reset();
       }
     }
   };
 
   // Capture tasks by reference to not copy the vector.  `iter` is bound to the original
   // vector.
-  state.invoke_until_async = [callback, callback_called, is_inside_task, iter, &tasks]() mutable {
-    DebugScope d("invoke_until_async");
-    while (*iter != tasks.end()) {
-      *is_inside_task = true;
-      *callback_called = false;
-      auto task = **iter;
-      task(callback);
-      *is_inside_task = false;
-      ++(*iter);
+  state->invoke_until_async = [state]() mutable {
+    if (state->is_finished) {
+      printf("ERROR ********************\n");  // REMOVE ME
+    }
 
-      if (!*callback_called) {
+    DebugScope d("invoke_until_async");
+    while (state->iter != state->tasks->end()) {
+      state->is_inside_task = true;
+      state->callback_called = false;
+      auto task = *(state->iter);
+      task(state->callback);
+      state->is_inside_task = false;
+      ++(state->iter);
+
+      if (!state->callback_called) {
         break;
       }
     }
+
+    if (state->iter == state->tasks->end() && state->callback_called) {
+      state->is_finished = true;
+
+      // We're done.
+      printf("invoke state count: %d\n", state.use_count());
+      state.reset();
+    }
   };
 
-  invoke_until_async();
+  state->invoke_until_async();
+
+  printf("series state count: %d\n", state.use_count());
+  state.reset();
 }
 
 }
