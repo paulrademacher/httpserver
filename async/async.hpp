@@ -95,31 +95,62 @@ void series(std::vector<Task<T>> &tasks,
 
   using Iterator = typename TaskVector<T>::iterator;
   auto iter = std::make_shared<Iterator>(tasks.begin());
-  auto inside_task = std::make_shared<bool>(false);
+  auto is_inside_task = std::make_shared<bool>(false);
   auto last_error = std::make_shared<ErrorCode>(OK);
+  auto callback_shared_ptr = std::make_shared<SeriesCallback<T>>([results, is_inside_task, last_error](ErrorCode error, T result) mutable {
+        results->push_back(result);
+        *last_error = error;
+      });
 
-  SeriesCallback<T> callback = [results, inside_task, last_error, invoke_next_task](ErrorCode error, T result) mutable {
+pass callback to itself in a way.
+
+  SeriesCallback<T> callback = [results, is_inside_task, last_error /*, invoke_next_task*/](ErrorCode error, T result) mutable {
     results->push_back(result);
     *last_error = error;
-    if (!inside_task) {
-      invoke_next_task();
-    }
-  };
-  auto invoke_next_task = [iter]() {
-    ++(*iter);
-    invoke_current_task();
-  };
-  auto invoke_current_task = [inside_task, iter, callback]() mutable {
-    *inside_task = true;
-    auto task = **iter;
-    task(callback);
-    *inside_task = false;
+
+    /*    if (!is_inside_task) {
+      while (*iter != tasks.end()) {
+        *is_inside_task = true;
+        auto task = **iter;
+        task(callback);
+        *is_inside_task = false;
+        ++(*iter);
+      }
+      }*/
   };
 
-  while (*iter != tasks.end()) {
+  auto invoke_current_task = [is_inside_task, iter, callback]() mutable {
+    *is_inside_task = true;
+    auto task = **iter;
+    task(callback);
+    *is_inside_task = false;
+  };
+
+  /*  auto invoke_next_task = [iter, invoke_current_task](bool is_first_call) {
+    ++(*iter);
+    invoke_current_task();
+    };*/
+
+  // Capture tasks by reference to not copy the vector.  `iter` is bound to the original
+  // vector.
+  auto invoke_until_async = [callback, is_inside_task, iter, &tasks]() mutable {
+    while (*iter != tasks.end()) {
+      *is_inside_task = true;
+      auto task = **iter;
+      task(callback);
+      *is_inside_task = false;
+      ++(*iter);
+    }
+  };
+
+  invoke_until_async();
+
+  //  invoke_next_task(true);
+
+  /*  while (*iter != tasks.end()) {
     invoke_current_task();
     ++(*iter);
-  }
+    }*/
 }
 
 }
