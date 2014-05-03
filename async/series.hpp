@@ -46,24 +46,22 @@ void series(std::vector<Task<T>> &tasks,
   struct SeriesState {
     SeriesCallback<T> callback;
     std::function<void()> invoke_until_async;
+    std::vector<Task<T>> *tasks;
     typename TaskVector<T>::iterator iter;
     bool is_inside_task;
     bool callback_called;
-    ErrorCode last_error = OK;
     std::vector<T> results;
-    std::vector<Task<T>> *tasks;
     const SeriesCompletionCallback<T> *final_callback;
 
     SeriesState() {
       debug_series_state_count++;
       printf("> SeriesState\n");
     }
+
     ~SeriesState() {
       debug_series_state_count--;
-      printf("< SeriesState\n");
+      printf("< SeriesState\n\n");
     }
-
-    //    SeriesState(std::vector<Task<T>> *tasks_in) : tasks(tasks_in) {};
   };
 
   auto state = std::make_shared<SeriesState>();
@@ -81,11 +79,11 @@ void series(std::vector<Task<T>> &tasks,
   // Capture tasks by reference to not copy the vector.  `iter` is bound to the original
   // vector.
   state->callback = [state](ErrorCode error, T result) mutable {
+    // DebugScope d("callback");
     assert(state);
 
     state->callback_called = true;
     state->results.push_back(result);
-    state->last_error = error;
 
     if (state->iter == state->tasks->end()) {
       // We're done.  No more tasks, so no more callbacks.
@@ -98,7 +96,6 @@ void series(std::vector<Task<T>> &tasks,
     } else if (!state->is_inside_task) {
       state->invoke_until_async();
     }
-
   };
 
   // Capture tasks by reference to not copy the vector.  `iter` is bound to the original
@@ -106,7 +103,7 @@ void series(std::vector<Task<T>> &tasks,
   state->invoke_until_async = [state]() mutable {
     assert(state);
 
-    DebugScope d("invoke_until_async");
+    // DebugScope d("invoke_until_async");
     while (state->iter != state->tasks->end()) {
       state->is_inside_task = true;
       state->callback_called = false;
@@ -118,12 +115,14 @@ void series(std::vector<Task<T>> &tasks,
       state->is_inside_task = false;
 
       if (!state->callback_called) {
+        // The callback wasn't called, which means it was deferred.  Stop iterating.
+        // The future invocation of the callback will continue the iteration.
         break;
       }
     }
 
     if (state->iter == state->tasks->end()) {
-      // We're done.
+      // No more tasks to process.  Release the shared pointer to `state`.
       printf("finished invoke\n");
       printf("invoke state count: %ld\n", state.use_count());
       state.reset();
