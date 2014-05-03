@@ -1,65 +1,75 @@
 #include "async.hpp"
-#include <boost/asio.hpp>
 
 void task1(async::SeriesCallback<int> &callback) {
-  printf("TASK1\n");
-
-  callback(async::OK, 11);
+  callback(async::OK, 1);
 }
 
-// TODO: this signature will compire with or without reference!
+// TODO: this signature will compile with or without reference!
 
 void task2(async::SeriesCallback<int> &callback) {
-  printf("TASK2\n");
-
-  callback(async::OK, 22);
+  callback(async::OK, 2);
 }
 
-async::SeriesCallback<int> *task3_callback;
+async::SeriesCallback<int> deferred_callback;
 
-void task3_initiate(async::SeriesCallback<int> &callback) {
-  printf("TASK3_initiate\n");
-  *task3_callback = callback;
+void task3_deferred_initiate(async::SeriesCallback<int> &callback) {
+  deferred_callback = callback;
 }
 
-void task3_complete() {
-  printf("TASK3_complete\n");
-
-  (*task3_callback)(async::OK, 33);
+void task3_deferred_complete() {
+  deferred_callback(async::OK, 3);
 }
 
 void task4(async::SeriesCallback<int> &callback) {
-  printf("TASK4\n");
-
-  callback(async::OK, 44);
+  callback(async::OK, 4);
 }
 
 void task5(async::SeriesCallback<int> &callback) {
-  printf("TASK5\n");
-
-  callback(async::OK, 55);
+  callback(async::OK, 5);
 }
 
-void completion(async::ErrorCode error, std::vector<int> &results) {
+void completion_callback(async::ErrorCode error, std::vector<int> &results) {
   printf("--------------------\n");
-  printf("size: %lu\n", results.size());
   for (int x : results) {
-    printf("%d\n", x);
+    printf("%d ", x);
   }
+  printf("\n");
+}
 
-  
+void test1() {
+  assert(async::debug_series_state_count == 0);
+
+  //  std::vector<async::Task<int>> tasks = { task1 }; //{ task3_deferred_initiate }; //x{task1, task2, task3_deferred_initiate, task4, task5};
+  std::vector<async::Task<int>> tasks = { task1, task2, task3_deferred_initiate, task4, task5, task3_deferred_initiate};
+  async::series<int>(tasks, completion_callback);
+
+  task3_deferred_complete();
+  task3_deferred_complete();
+
+  assert(async::debug_series_state_count == 0);
+}
+
+void test2() {
+  assert(async::debug_series_state_count == 0);
+
+  std::vector<async::Task<int>> tasks = { task1, task2, task4, task5};
+  async::series<int>(tasks, completion_callback);
+
+  assert(async::debug_series_state_count == 0);
+}
+
+void test3() {
+  assert(async::debug_series_state_count == 0);
+
+  // ...
+
+  assert(async::debug_series_state_count == 0);
 }
 
 int main(int argc, char *argv[]) {
-  boost::asio::io_service *io_service = new boost::asio::io_service;
-
-  //  std::vector<async::Task<int>> tasks = { task1 }; //{ task3_initiate }; //x{task1, task2, task3_initiate, task4, task5};
-  std::vector<async::Task<int>> tasks = { task1, task2, task3_initiate, task4, task5};
-  async::series<int>(tasks, completion);
-
-  task3_complete();
-
-  io_service->run();
+  test1();
+  test2();
+  test3();
 
   return 0;
 }
