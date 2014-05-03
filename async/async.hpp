@@ -29,7 +29,7 @@ template<typename T>
 void noop_series_callback(ErrorCode e, T result) {};
 
 template<typename T>
-using SeriesCompletionCallback = std::function<void(ErrorCode, std::vector<T>)>;
+using SeriesCompletionCallback = std::function<void(ErrorCode, std::vector<T>&)>;
 
 template<typename T>
 void noop_series_final_callback(ErrorCode e, std::vector<T> p) {};
@@ -40,10 +40,6 @@ using Task = std::function<void(SeriesCallback<T>&)>;
 template<typename T>
 using TaskVector = std::vector<Task<T>>;
 
-void TEST(async::SeriesCallback<int> callback) {
-  printf("TEST\n");
-  callback(async::OK, 11);
-}
 
 // `tasks` and `final_callback` are passed by reference.  It is the responsibility of the
 // caller to ensure that their lifetime exceeds the lifetime of the series call.
@@ -66,7 +62,7 @@ void series_with_callstack(std::vector<Task<T>> &tasks,
 
   Iterator task_iter = tasks.begin();
   SeriesCallback<T> callback = [&tasks, task_iter, &final_callback, results, &callback](ErrorCode error, T result) mutable {
-    printf("err=%d   iter: %x %x   - &iter=%x  &cb=%x\n", error, task_iter, tasks.end(), &task_iter, &callback);
+    //    printf("err=%d   iter: %x %x   - &iter=%x  &cb=%x\n", error, task_iter, tasks.end(), &task_iter, &callback);
     results->push_back(result);
     if (error == OK) {
       ++task_iter;
@@ -91,7 +87,7 @@ void series_with_callstack(std::vector<Task<T>> &tasks,
 // caller to ensure that their lifetime exceeds the lifetime of the series call.
 template<typename T>
 void series(std::vector<Task<T>> &tasks,
-    const std::function<void(ErrorCode, std::vector<T>&)> &final_callback=noop_series_final_callback<T>) {
+    const SeriesCompletionCallback<T> &final_callback=noop_series_final_callback<T>) {
 
   struct SeriesState {
     SeriesCallback<T> callback;
@@ -103,6 +99,7 @@ void series(std::vector<Task<T>> &tasks,
     ErrorCode last_error = OK;
     std::vector<T> results;
     std::vector<Task<T>> *tasks;
+    const SeriesCompletionCallback<T> *final_callback;
 
     SeriesState() { printf("> SeriesState\n"); }
     ~SeriesState() { printf("< SeriesState\n"); }
@@ -112,6 +109,7 @@ void series(std::vector<Task<T>> &tasks,
 
   auto state = std::make_shared<SeriesState>();
   state->tasks = &tasks;
+  state->final_callback = &final_callback;
   state->iter = tasks.begin();
 
   // If task list is empty, invoke the final callback immediately with a success code and
@@ -129,18 +127,18 @@ void series(std::vector<Task<T>> &tasks,
     }
 
     DebugScope d("callback");
-    printf("In callback.  is_inside_task=%d\n", state->is_inside_task);
+    //    printf("In callback.  is_inside_task=%ld\n", state->is_inside_task);
     state->callback_called = true;
     state->results.push_back(result);
     state->last_error = error;
 
     if (!state->is_inside_task) {
       state->invoke_until_async();
+    }
 
-      if (state->is_finished) {
-        printf("cb state count: %d\n", state.use_count());
-        state.reset();
-      }
+    if (state->is_finished) {
+      printf("cb state count: %ld\n", state.use_count());
+      state.reset();
     }
   };
 
@@ -156,27 +154,37 @@ void series(std::vector<Task<T>> &tasks,
       state->is_inside_task = true;
       state->callback_called = false;
       auto task = *(state->iter);
-      task(state->callback);
-      state->is_inside_task = false;
+      printf("> task invocation: %ld\n", state.use_count());
       ++(state->iter);
+
+      if (state->iter == state->tasks->end()) {
+        state->is_finished = true;
+      }
+
+      task(state->callback);
+      printf("< task invocation: %ld\n", state.use_count());
+      state->is_inside_task = false;
 
       if (!state->callback_called) {
         break;
       }
     }
 
-    if (state->iter == state->tasks->end() && state->callback_called) {
-      state->is_finished = true;
+    if (state->iter == state->tasks->end()) {
+      state->is_finished = true; // NECESSARY?
 
       // We're done.
-      printf("invoke state count: %d\n", state.use_count());
+      printf("invoke state count: %ld\n", state.use_count());
       state.reset();
     }
   };
 
+  printf("> series state count: %ld\n", state.use_count());
+
   state->invoke_until_async();
 
-  printf("series state count: %d\n", state.use_count());
+  printf("< series state count: %ld\n", state.use_count());
+
   state.reset();
 }
 
